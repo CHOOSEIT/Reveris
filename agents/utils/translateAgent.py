@@ -1,5 +1,5 @@
 from openaiAPI import query_openai
-from agents.agent_utils import AGENT_INTRODUCTION, extract_json_answer
+from agents.utils.agent_utils import AGENT_INTRODUCTION, extract_json_answer
 
 def query_translation(language: str, text: str) -> str:
     """

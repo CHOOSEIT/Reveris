@@ -1,7 +1,7 @@
 import os
 
 from openaiAPI import query_openai_tts
-from agents.translateAgent import query_translation
+from agents.utils.translateAgent import query_translation
 
 def query_readme(text: str, id: str):
     """

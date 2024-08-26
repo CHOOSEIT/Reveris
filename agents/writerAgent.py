@@ -1,5 +1,10 @@
-from openaiAPI import query_openai
-from agents.agent_utils import AGENT_INTRODUCTION, extract_json_answer
+from agents.utils.agent_utils import (
+    AGENT_INTRODUCTION,
+    extract_json_answer,
+    query_llm_with_feedback,
+)
+from typing import Tuple
+
 
 def query_story_introduction(story_overview: str):
     """
@@ -12,8 +17,15 @@ def query_story_introduction(story_overview: str):
         str: introduction and idea of the story
     """
 
-    prompt = AGENT_INTRODUCTION + \
-"""Write the beginning of story given its beginning overview. 
+    JSON_FORMAT = """
+{
+    "story_content": "your answer here",
+}
+"""
+
+    prompt = (
+        AGENT_INTRODUCTION
+        + """Write the beginning of story given its beginning overview. 
 Tell the story assuming that I do not know the overview nor have any context about it.
 It moreover should be short (1 paragraph maximum), and set the stage for the story. That will be completed later.
 
@@ -25,24 +37,51 @@ Story beginning overview: [STORY_OVERVIEW]
 Note that your introduction should not cover the entire story overview, but just set the stage for the story.
 
 You answer must contains a single JSON object in the following format:
-{
-    "story_content": "your answer here",
-}
+[FORMAT]
 Make sure to have your answer in the JSON format.
-""".replace("[STORY_OVERVIEW]", story_overview)
+""".replace(
+            "[STORY_OVERVIEW]", story_overview
+        ).replace(
+            "[FORMAT]", JSON_FORMAT
+        )
+    )
 
     messages = [
         {"role": "system", "content": prompt},
     ]
 
-    answer = query_openai(messages)
-    json_answer = extract_json_answer(answer)
+    def feedback_function(answer: str) -> Tuple[bool, object]:
+        json_answer = extract_json_answer(answer)
+        if json_answer is None:
+            return (
+                False,
+                "Failed to parse the answer. Please verify that your answer is in the right JSON format: {}".format(
+                    JSON_FORMAT
+                ),
+            )
 
-    if json_answer is None:
+        if "story_content" not in json_answer:
+            return (
+                False,
+                "The JSON answer is missing some keys. Please verify that your answer is in the right JSON format: {}".format(
+                    JSON_FORMAT
+                ),
+            )
+
+        return True, json_answer
+
+    answer = query_llm_with_feedback(messages, feedback_function)
+    if answer is None:
         return None
-    return json_answer["story_content"]
+    return answer["story_content"]
 
-def query_story_continuation(story_overview: str, story_state:str, story_part_number: int, story_number_of_parts: int):
+
+def query_story_continuation(
+    story_overview: str,
+    story_state: str,
+    story_part_number: int,
+    story_number_of_parts: int,
+):
     """
     Continue the story story.
 
@@ -50,8 +89,15 @@ def query_story_continuation(story_overview: str, story_state:str, story_part_nu
         str: continuation of the story
     """
 
-    prompt = AGENT_INTRODUCTION + \
+    JSON_FORMAT = """
+{
+    "story_content": "your answer here",
+}
 """
+
+    prompt = (
+        AGENT_INTRODUCTION
+        + """
 Story State: [STORY_STATE]
 
 Write the continuation of the story, given the beginning overview and the current state of the story.
@@ -71,32 +117,63 @@ When writing your part, do not explicitly mention that your choices will have an
 Story beginning overview: [STORY_OVERVIEW]
 
 You answer must contains a single JSON object in the following format:
-{
-    "story_content": "your answer here",
-}
+[FORMAT]
 Make sure to have your answer in the JSON format.
-""".replace("[STORY_OVERVIEW]", story_overview).replace("[STORY_STATE]", story_state).replace("[PART_NUMBER]", str(story_part_number)).replace("[NUMBER_OF_PARTS]", str(story_number_of_parts))
+""".replace(
+            "[STORY_OVERVIEW]", story_overview
+        )
+        .replace("[STORY_STATE]", story_state)
+        .replace("[PART_NUMBER]", str(story_part_number))
+        .replace("[NUMBER_OF_PARTS]", str(story_number_of_parts))
+        .replace("[FORMAT]", JSON_FORMAT)
+    )
 
     messages = [
         {"role": "system", "content": prompt},
     ]
 
-    answer = query_openai(messages)
-    json_answer = extract_json_answer(answer)
-    if json_answer is None:
-        return None
-    return json_answer["story_content"]
+    def feedback_function(answer: str) -> Tuple[bool, object]:
+        json_answer = extract_json_answer(answer)
+        if json_answer is None:
+            return (
+                False,
+                "Failed to parse the answer. Please verify that your answer is in the right JSON format: {}".format(
+                    JSON_FORMAT
+                ),
+            )
 
-def query_story_end(story_overview: str, story_state:str):
+        if "story_content" not in json_answer:
+            return (
+                False,
+                "The JSON answer is missing some keys. Please verify that your answer is in the right JSON format: {}".format(
+                    JSON_FORMAT
+                ),
+            )
+
+        return True, json_answer
+
+    answer = query_llm_with_feedback(messages, feedback_function)
+    if answer is None:
+        return None
+    return answer["story_content"]
+
+
+def query_story_end(story_overview: str, story_state: str):
     """
     Finish the story story.
 
     Returns:
         str: end of the story
     """
-
-    prompt = AGENT_INTRODUCTION + \
+    JSON_FORMAT = """
+{
+    "story_end": "your answer here",
+}
 """
+
+    prompt = (
+        AGENT_INTRODUCTION
+        + """
 Story State: [STORY_STATE]
 
 Write the end of the story, given the beginning overview and the current state of the story.
@@ -110,18 +187,40 @@ Maybe reflect the choices made by the user in the story (not necessary but would
 Story beginning overview: [STORY_OVERVIEW]
 
 You answer must contains a single JSON object in the following format:
-{
-    "story_end": "your answer here",
-}
+[FORMAT]
 Make sure to have your answer in the JSON format.
-""".replace("[STORY_OVERVIEW]", story_overview).replace("[STORY_STATE]", story_state)
+""".replace(
+            "[STORY_OVERVIEW]", story_overview
+        )
+        .replace("[STORY_STATE]", story_state)
+        .replace("[FORMAT]", JSON_FORMAT)
+    )
 
     messages = [
         {"role": "system", "content": prompt},
     ]
 
-    answer = query_openai(messages)
-    json_answer = extract_json_answer(answer)
-    if json_answer is None:
+    def feedback_function(answer: str) -> Tuple[bool, object]:
+        json_answer = extract_json_answer(answer)
+        if json_answer is None:
+            return (
+                False,
+                "Failed to parse the answer. Please verify that your answer is in the right JSON format: {}".format(
+                    JSON_FORMAT
+                ),
+            )
+
+        if "story_end" not in json_answer:
+            return (
+                False,
+                "The JSON answer is missing some keys. Please verify that your answer is in the right JSON format: {}".format(
+                    JSON_FORMAT
+                ),
+            )
+
+        return True, json_answer
+
+    answer = query_llm_with_feedback(messages, feedback_function)
+    if answer is None:
         return None
-    return json_answer["story_end"]
+    return answer["story_end"]
