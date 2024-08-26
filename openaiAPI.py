@@ -14,16 +14,22 @@ _openai_key = os.environ.get("OPENAI_KEY")
 _openai_model = "gpt-4o-mini-2024-07-18"
 _openai_client = OpenAI(api_key=_openai_key)
 _openai_model_tts = "tts-1"
-_price_per_token = {
-    "prompt": 0.00000015,
-    "completion": 0.0000006,
+_openai_model_image_model = "dall-e-3"
+_openai_model_image_resolution = "1024x1024"
+_openai_model_image_quality = "hd"
+_api_prices = {
+    "per_token_input": 0.00000015,
+    "per_token_output": 0.0000006,
     "text_to_speech_per_character": 0.000015,
+    "image_generation": 0.080,  # DALL-E HD 1024x1024
 }
 
 
 ###############################################################################################
 # Query OpenAI Chat
 ###############################################################################################
+
+
 def query_openai(messages: list, temperature=0.0) -> str:
     """
     Query the OpenAI API with the current conversation.
@@ -70,12 +76,41 @@ def query_openai_tts(text: str, filename: str):
 
 
 ###############################################################################################
+# Query OpenAI Image Generation
+###############################################################################################
+
+
+def query_openai_image_generation(prompt: str, style="natural") -> str:
+    """
+    Generate an image using the OpenAI API.
+
+    Args:
+        prompt (str): The prompt to generate the image
+        style (str): The style of the image (standard or vivid)
+
+    Returns:
+        str: The URL of the generated image
+    """
+    response = _openai_client.images.generate(
+        model=_openai_model_image_model,
+        prompt=prompt,
+        size=_openai_model_image_resolution,
+        quality=_openai_model_image_quality,
+        style=style,
+        n=1,
+    )
+    openai_add_image_generation(1)
+    return response.data[0].url
+
+
+###############################################################################################
 # OpenAI Usage
 ###############################################################################################
 _usage_dict = {
     "total_input_tokens": 0,
     "total_output_tokens": 0,
     "text_to_speech_characters": 0,
+    "generated_images": 0,
     "estimated_cost": 0.0,
 }
 
@@ -84,16 +119,21 @@ def openai_add_usage(usage: dict) -> None:
     _usage_dict["total_input_tokens"] += usage["prompt_tokens"]
     _usage_dict["total_output_tokens"] += usage["completion_tokens"]
     _usage_dict["estimated_cost"] += (
-        usage["prompt_tokens"] * _price_per_token["prompt"]
-        + usage["completion_tokens"] * _price_per_token["completion"]
+        usage["prompt_tokens"] * _api_prices["per_token_input"]
+        + usage["completion_tokens"] * _api_prices["per_token_output"]
     )
 
 
 def openai_add_text_to_speech_usage(characters_number: int) -> None:
     _usage_dict["text_to_speech_characters"] += characters_number
     _usage_dict["estimated_cost"] += (
-        characters_number * _price_per_token["text_to_speech_per_character"]
+        characters_number * _api_prices["text_to_speech_per_character"]
     )
+
+
+def openai_add_image_generation(image_number: int) -> None:
+    _usage_dict["generated_images"] += image_number
+    _usage_dict["estimated_cost"] += image_number * _api_prices["image_generation"]
 
 
 def openai_show_usage() -> None:
@@ -104,5 +144,6 @@ def openai_show_usage() -> None:
     print(
         "Text to speech characters: {}".format(_usage_dict["text_to_speech_characters"])
     )
+    print("Generated images: {}".format(_usage_dict["generated_images"]))
     print("Estimated cost: ${}".format(_usage_dict["estimated_cost"]))
     print("############################################")
