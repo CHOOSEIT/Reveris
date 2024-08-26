@@ -3,6 +3,7 @@ import re
 from typing import Tuple, List
 from agents.ideaAgent import extract_json_answer
 from agents.utils.agent_utils import query_llm_with_feedback
+from openaiAPI import query_openai_image_generation
 
 
 def _get_valid_illustrations(
@@ -180,6 +181,93 @@ Your answer must contain a list of illustrations in the following format:
         if error_message != "":
             return False, error_message
 
-        return True, illustrations
+        return True, valid_matches
 
     return query_llm_with_feedback(messages, feedback_function)
+
+
+def query_illustration(text: str, description: str, text_subpart: str):
+    """
+    Generate an illustration using the OpenAI API.
+
+    Args:
+        text (str): The entire text to generate the illustration
+        description (str): The description of the illustration
+        text_subpart (str): The text subpart that should be illustrated.
+    """
+
+    JSON_FORMAT = """
+{
+    "image_description": "Description of the image",
+}
+"""
+
+    prompt = (
+        """
+I have written a story and would like to illustrate it with multiple images.
+
+The story is: [TEXT]
+
+For this task, I have selected a specific part of the story to illustrate. Your goal is to generate a detailed image description for the illustrator.
+
+The specific text from the story to be illustrated is: [TEXT_SUBPART]
+
+Additionally, I am providing a brief description of the image I envision. Based on both the text subpart and the brief description, please generate a precise and detailed image description.
+My description is: [DESCRIPTION]
+
+Make sure to keep the theme and the style of the story intact.
+Make sure to add in the image description a style. You should provide a style that is close the natural or realistic style.
+
+Provide the image description in the following format:
+[FORMAT]
+""".replace(
+            "[TEXT]", text
+        )
+        .replace("[TEXT_SUBPART]", text_subpart)
+        .replace("[FORMAT]", JSON_FORMAT)
+        .replace("[DESCRIPTION]", description)
+    )
+
+    messages = [
+        {"role": "system", "content": prompt},
+    ]
+
+    def feedback_function(answer: str, is_final_feedback: bool) -> Tuple[bool, object]:
+        json_answer = extract_json_answer(answer)
+        if json_answer is None:
+            return (
+                False,
+                "Failed to parse the answer. Please verify that your answer is in the right JSON format: {}".format(
+                    JSON_FORMAT
+                ),
+            )
+
+        if "image_description" not in json_answer:
+            return (
+                False,
+                "The JSON answer is missing the 'image_description' key. Please verify that your answer is in the right JSON format: {}".format(
+                    JSON_FORMAT
+                ),
+            )
+
+        return True, json_answer
+
+    answer = query_llm_with_feedback(messages, feedback_function)
+    if answer is None:
+        return None
+    image_description = answer["image_description"]
+    return query_openai_image_generation(image_description, style="vivid")
+
+
+def get_text_illustrations(text: str, max_illustrations: int = 3) -> List[str]:
+    urls = []
+    illustrations = query_suggested_illustrations(
+        text, max_illustrations=max_illustrations
+    )
+    for i, match in enumerate(illustrations):
+        print("Generating illustration: ", i + 1)
+        url = query_illustration(
+            text=text, description=match["description"], text_subpart=match["text"]
+        )
+        urls.append(url)
+    return urls
