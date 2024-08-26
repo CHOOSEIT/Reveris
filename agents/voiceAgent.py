@@ -3,6 +3,7 @@ import os
 from openaiAPI import query_openai_tts
 from agents.utils.translateAgent import query_translation
 
+
 def query_readme(text: str, id: str):
     """
     Read the story.
@@ -13,4 +14,3 @@ def query_readme(text: str, id: str):
     os.makedirs("out", exist_ok=True)
 
     query_openai_tts(text=translated_text, filename=filename)
-    

@@ -14,7 +14,11 @@ _openai_key = os.environ.get("OPENAI_KEY")
 _openai_model = "gpt-4o-mini-2024-07-18"
 _openai_client = OpenAI(api_key=_openai_key)
 _openai_model_tts = "tts-1"
-_price_per_token = {"prompt": 0.00000015, "completion": 0.0000006, "text_to_speech_per_character": 0.000015}
+_price_per_token = {
+    "prompt": 0.00000015,
+    "completion": 0.0000006,
+    "text_to_speech_per_character": 0.000015,
+}
 
 
 ###############################################################################################
@@ -41,9 +45,11 @@ def query_openai(messages: list, temperature=0.0) -> str:
 
     return response["choices"][0]["message"]["content"]
 
+
 ###############################################################################################
 # Query OpenAI Text to Speech
 ###############################################################################################
+
 
 def query_openai_tts(text: str, filename: str):
     """
@@ -62,25 +68,41 @@ def query_openai_tts(text: str, filename: str):
         response.stream_to_file(filename)
     print("Text to speech saved to {}".format(filename))
 
+
 ###############################################################################################
 # OpenAI Usage
 ###############################################################################################
-_usage_dict = {"total_input_tokens": 0, "total_output_tokens": 0, "text_to_speech_characters": 0, "estimated_cost": 0.0}
+_usage_dict = {
+    "total_input_tokens": 0,
+    "total_output_tokens": 0,
+    "text_to_speech_characters": 0,
+    "estimated_cost": 0.0,
+}
+
+
 def openai_add_usage(usage: dict) -> None:
     _usage_dict["total_input_tokens"] += usage["prompt_tokens"]
     _usage_dict["total_output_tokens"] += usage["completion_tokens"]
-    _usage_dict["estimated_cost"] += (usage["prompt_tokens"] * _price_per_token["prompt"] +
-                                     usage["completion_tokens"] * _price_per_token["completion"])
+    _usage_dict["estimated_cost"] += (
+        usage["prompt_tokens"] * _price_per_token["prompt"]
+        + usage["completion_tokens"] * _price_per_token["completion"]
+    )
+
 
 def openai_add_text_to_speech_usage(characters_number: int) -> None:
     _usage_dict["text_to_speech_characters"] += characters_number
-    _usage_dict["estimated_cost"] += characters_number * _price_per_token["text_to_speech_per_character"]
+    _usage_dict["estimated_cost"] += (
+        characters_number * _price_per_token["text_to_speech_per_character"]
+    )
+
 
 def openai_show_usage() -> None:
     print("############################################")
     print("OpenAI Usage:")
     print("Total input tokens: {}".format(_usage_dict["total_input_tokens"]))
     print("Total output tokens: {}".format(_usage_dict["total_output_tokens"]))
-    print("Text to speech characters: {}".format(_usage_dict["text_to_speech_characters"]))
+    print(
+        "Text to speech characters: {}".format(_usage_dict["text_to_speech_characters"])
+    )
     print("Estimated cost: ${}".format(_usage_dict["estimated_cost"]))
     print("############################################")
