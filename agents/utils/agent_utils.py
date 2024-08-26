@@ -52,7 +52,7 @@ def query_llm_with_feedback(
         if error_code:
             return output
 
-        print("Feedback: {}".format(output))
+        print("    LLM error feedback: {}".format(output))
         message_history.append({"role": "system", "content": output})
 
     return None

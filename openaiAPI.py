@@ -15,13 +15,13 @@ _openai_model = "gpt-4o-mini-2024-07-18"
 _openai_client = OpenAI(api_key=_openai_key)
 _openai_model_tts = "tts-1"
 _openai_model_image_model = "dall-e-3"
-_openai_model_image_resolution = "1024x1024"
+_openai_model_image_resolution = "1792x1024"
 _openai_model_image_quality = "hd"
 _api_prices = {
     "per_token_input": 0.00000015,
     "per_token_output": 0.0000006,
     "text_to_speech_per_character": 0.000015,
-    "image_generation": 0.080,  # DALL-E HD 1024x1024
+    "image_generation": 0.120,
 }
 
 
@@ -80,7 +80,7 @@ def query_openai_tts(text: str, filename: str):
 ###############################################################################################
 
 
-def query_openai_image_generation(prompt: str, style="natural") -> str:
+def query_openai_image_generation(prompt: str, style="vivid") -> str:
     """
     Generate an image using the OpenAI API.
 

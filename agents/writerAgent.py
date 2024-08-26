@@ -158,9 +158,13 @@ Make sure to have your answer in the JSON format.
     return answer["story_content"]
 
 
-def query_story_end(story_overview: str, story_state: str):
+def query_story_end(story_overview: str, story: str):
     """
     Finish the story story.
+
+    Args:
+        story_overview (str): the story overview
+        story_state (str): the story
 
     Returns:
         str: end of the story
@@ -179,7 +183,7 @@ Story State: [STORY_STATE]
 Write the end of the story, given the beginning overview and the current state of the story.
 It is not necessary, but adding a moral or a clear idea to the story would add value to the story.
 
-The end should be short (1 paragraphs maximum).
+The end should be short (2 paragraphs maximum).
 
 Make sure that the end follows the story and the choices made by the user in the previous parts.
 Maybe reflect the choices made by the user in the story (not necessary but would be a nice touch if relevant).
@@ -192,7 +196,7 @@ Make sure to have your answer in the JSON format.
 """.replace(
             "[STORY_OVERVIEW]", story_overview
         )
-        .replace("[STORY_STATE]", story_state)
+        .replace("[STORY_STATE]", story)
         .replace("[FORMAT]", JSON_FORMAT)
     )
 

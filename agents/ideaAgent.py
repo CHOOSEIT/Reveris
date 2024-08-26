@@ -143,3 +143,22 @@ Make sure to have your answer in the JSON format.
         json.dump(ideas, f)
 
     return idea
+
+
+def generate_title_overview_story():
+    """
+    Generate the title and overview of the story.
+
+    Returns:
+        str: The title of the story or None if the story could not be generated
+        str: The overview of the story or None if the story could not be generated
+    """
+    story_idea = query_idea()
+
+    expanded_story_id = query_expand_story_idea(story_idea=story_idea)
+    if expanded_story_id is None:
+        return None, None
+
+    title = expanded_story_id["title"]
+    overview = expanded_story_id["overview"]
+    return title, overview
