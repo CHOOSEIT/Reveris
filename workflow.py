@@ -6,6 +6,7 @@ from agents.writerAgent import (
     query_story_end,
 )
 from agents.voiceAgent import query_readme
+from agents.illustratorAgent import query_suggested_illustrations
 
 STORY_LENGTH = 3
 
@@ -63,5 +64,19 @@ if end is None:
     exit(1)
 
 # query_readme(end, "end")
+
+
+# print("Illustrations:")
+# illustrations = query_suggested_illustrations(
+#     """You stand at the edge of the Enchanted Forest, the air thick with the scent of pine and the distant sound of rustling leaves. In your hand, the magical compass glimmers, its needle spinning wildly before settling in a steady direction, pointing toward your deepest desires. The forest looms before you, a tapestry of vibrant colors and whispering secrets, inviting you to step into its embrace. As you take your first step, a sense of anticipation fills your heart, mingling with a hint of trepidation. The path ahead is unknown, but the compass promises revelations that could change everything. With each step, you feel the weight of your old life behind you, and the thrill of possibility ahead, as the journey of self-discovery begins to unfold.
+# As you venture deeper into the Enchanted Forest, the trees seem to close in around you, their branches intertwining like the fingers of ancient giants. The compass in your hand begins to pulse with warmth, guiding you toward a clearing bathed in golden light. In the center stands a magnificent tree, its bark shimmering with iridescent hues, and at its base, a small, intricately carved box rests, beckoning you closer. You kneel down, heart racing, and open the box to reveal a shimmering crystal that radiates a soft glow. Just as you reach for it, a voice echoes through the clearing, startling you. "Only those who are truly ready may claim the crystal of their heart's desire. But beware, for it will reveal not just your dreams, but also your greatest fear." The air thickens with tension as you contemplate your next move. Will you take the crystal, risking the unveiling of your fears, or will you leave it behind and continue your journey unburdened? """
+# )
+
+# # Output the matches with their indices
+# for i, match in enumerate(illustrations):
+#     print(f"Illustration {i}:")
+#     print("--------")
+
+# print(illustrations)
 
 openai_show_usage()

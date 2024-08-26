@@ -28,24 +28,27 @@ def extract_json_answer(answer: str) -> dict:
 
 
 def query_llm_with_feedback(
-    message_history: list, feedback_function: callable, loop_times=3, temperature=0
+    message_history: list,
+    feedback_function: callable,
+    loop_times=3,
+    temperature=0,
 ) -> object:
     """
     Query the LLM until the feedback function returns a success or the loop times is reached.
 
     Args:
         message_history (list): the message history
-        feedback_function (callable([str] -> [bool, object])): the feedback function
-            -> function that accepts a string and return a boolean and an object. If the boolean is False, the object is the error message else it is the final answer
+        feedback_function (callable([str, bool] -> [bool, object])): the feedback function
+            -> function that accepts a string and a boolean (is final feedback) and return a boolean and an object. If the boolean is False, the object is the error message else it is the final answer
 
     Returns:
         str: the answer or None if the query failed
 
     """
-    for _ in range(loop_times):
+    for i in range(loop_times):
         answer = query_openai(message_history, temperature=temperature)
 
-        error_code, output = feedback_function(answer)
+        error_code, output = feedback_function(answer, i == loop_times - 1)
         if error_code:
             return output
 

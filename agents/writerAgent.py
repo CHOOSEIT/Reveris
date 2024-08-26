@@ -50,7 +50,7 @@ Make sure to have your answer in the JSON format.
         {"role": "system", "content": prompt},
     ]
 
-    def feedback_function(answer: str) -> Tuple[bool, object]:
+    def feedback_function(answer: str, is_final_feedback: bool) -> Tuple[bool, object]:
         json_answer = extract_json_answer(answer)
         if json_answer is None:
             return (
@@ -132,7 +132,7 @@ Make sure to have your answer in the JSON format.
         {"role": "system", "content": prompt},
     ]
 
-    def feedback_function(answer: str) -> Tuple[bool, object]:
+    def feedback_function(answer: str, is_final_feedback: bool) -> Tuple[bool, object]:
         json_answer = extract_json_answer(answer)
         if json_answer is None:
             return (
@@ -200,7 +200,7 @@ Make sure to have your answer in the JSON format.
         {"role": "system", "content": prompt},
     ]
 
-    def feedback_function(answer: str) -> Tuple[bool, object]:
+    def feedback_function(answer: str, is_final_feedback: bool) -> Tuple[bool, object]:
         json_answer = extract_json_answer(answer)
         if json_answer is None:
             return (
