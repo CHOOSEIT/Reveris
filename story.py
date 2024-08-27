@@ -164,6 +164,15 @@ class Story:
 
         return ERRORCODE_NO_ERROR, generated_part
 
+    def get_title(self) -> str:
+        """
+        Get the title of the story.
+
+        Returns:
+            str: the title of the story
+        """
+        return self._title
+
     def get_story(self) -> str:
         """
         Get the generated story.
