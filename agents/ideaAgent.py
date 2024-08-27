@@ -47,6 +47,9 @@ Moreover make sure to be clear about the places, characters, objects and goal th
 You should create a story overview that has a clear beginning and middle.
 Make sure to express the moral or idea that you want to convey in the story.
 
+The story that you create should have a real story and structure with arcs and a clear goal. But note that you should precise in the overview how the stories may end (as it is wrote along the way) depending on the choices made by the player.
+The story should have clear different paths and ending that each of them can be good or bad depending on the player decisions.
+
 But remember that you should only give the overview containing a moral or idea and not the entire story.
 
 You answer must contains a single JSON object in the following format:
@@ -119,6 +122,10 @@ Note that your previously generated ideas are:
 [STORIES]
 
 Make sure that your new idea is not similar or close to the previous ones. Make it truly unique.
+Try to not use the same places, themes, characters, objects, and goals that you have used in the previous ideas.
+
+The story that you create should have a real story and structure with arcs and a clear goal. But note that you should precise in the overview how the stories may end (as it is wrote along the way) depending on the choices made by the player.
+The story should have clear different paths and ending that each of them can be good or bad depending on the player decisions.
 
 You answer must contains a single JSON object in the following format:
 {

@@ -101,14 +101,17 @@ def query_story_continuation(
 Story State: [STORY_STATE]
 
 Write the continuation of the story, given the beginning overview and the current state of the story.
-The continuation should be short (1 paragraphs maximum). The story will be completed later, should write a single part of it.
+The continuation should be short (2 paragraphs maximum). The story will be completed later, should write a single part of it.
 
 Your part should contain a plot twist or a new element that will make the story more engaging.
 End the part with a question or choice that the user should make as the person within the story in order to decide how the story will continue.
-Craft the story such that the question you have 2 or 3 possible answers that have 2 or 3 radically different effects on the story. You have to see the story as a "story game".
+Craft the story such that the question you have 2 to 4 possible answers that have 2 to 4 radically different effects on the story. You have to see the story as a "story game".
 
 Make sure that the continuation is engaging and have a clear path. You should advance in the story do not lose time as the story should be completed in [NUMBER_OF_PARTS] parts.
 This part is the [PART_NUMBER]/[NUMBER_OF_PARTS].
+
+The story extension should lead to different paths and ending that each of them can be good or bad depending on the previous and future decisions.
+Make sure to really transport the player in an unique adventure. Note that you should not base the entire story on "choices that will define your future". You should really write a story and at one point, stop and ask the user to make a choice.
 
 Make sure to be close to the end of the story at the last part.
 
