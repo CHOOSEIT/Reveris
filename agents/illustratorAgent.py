@@ -77,7 +77,7 @@ def _get_valid_illustrations(
     return valid_matches, error_message
 
 
-def query_suggested_illustrations(text: str, max_illustrations: int = 3) -> List[dict]:
+def query_suggested_illustrations(text: str, max_illustrations: int = 2) -> List[dict]:
     """
     Given a text will return the list of illustrations that should be included in the story.
 
@@ -259,7 +259,7 @@ Provide the image description in the following format:
     return query_openai_image_generation(image_description, style="vivid")
 
 
-def get_text_illustrations(text: str, max_illustrations: int = 3) -> List[str]:
+def get_text_illustrations(text: str, max_illustrations: int = 2) -> List[str]:
     urls = []
     illustrations = query_suggested_illustrations(
         text, max_illustrations=max_illustrations

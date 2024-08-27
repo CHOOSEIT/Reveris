@@ -92,6 +92,15 @@ def query_story_continuation(
     JSON_FORMAT = """
 {
     "story_content": "your answer here",
+    "choices": [
+        {
+            "choice": "Choice 1",
+        },
+        {
+            "choice": "Choice 2",
+        },
+        ...
+    ]
 }
 """
 
@@ -116,6 +125,8 @@ Make sure to really transport the player in an unique adventure. Note that you s
 Make sure to be close to the end of the story at the last part.
 
 When writing your part, do not explicitly mention that your choices will have an effect on the story nor that you are in a story game. Just write the story as if it was a book and at the end provide the question with the choices.
+
+The choices should be explained in the part, but do not enumerate them at the end of the part. You should list them inside the JSON object.
 
 Story beginning overview: [STORY_OVERVIEW]
 
@@ -145,7 +156,7 @@ Make sure to have your answer in the JSON format.
                 ),
             )
 
-        if "story_content" not in json_answer:
+        if "story_content" not in json_answer or "choices" not in json_answer:
             return (
                 False,
                 "The JSON answer is missing some keys. Please verify that your answer is in the right JSON format: {}".format(
@@ -153,12 +164,30 @@ Make sure to have your answer in the JSON format.
                 ),
             )
 
+        if len(json_answer["choices"]) < 2:
+            return (
+                False,
+                "The JSON answer should contain at least 2 choices. Please verify that your answer is in the right JSON format and contain all the choices: {}".format(
+                    JSON_FORMAT
+                ),
+            )
+
+        for choice in json_answer["choices"]:
+            if "choice" not in choice:
+                return (
+                    False,
+                    "The JSON of a choice is missing some keys ({}). Please verify that your answer is in the right JSON format: {}".format(
+                        choice, JSON_FORMAT
+                    ),
+                )
+
         return True, json_answer
 
     answer = query_llm_with_feedback(messages, feedback_function)
     if answer is None:
         return None
-    return answer["story_content"]
+
+    return answer
 
 
 def query_story_end(story_overview: str, story: str):

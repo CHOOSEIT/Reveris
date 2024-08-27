@@ -2,7 +2,7 @@ from story import Story
 from agents.illustratorAgent import query_suggested_illustrations
 from openaiAPI import openai_show_usage
 
-story = Story(need_illustration=False, story_length=1)
+story = Story(need_illustration=False, story_length=3)
 code_error = 0
 while code_error == 0 or code_error == 1:
     code_error, parts = story.generate_next_part()
