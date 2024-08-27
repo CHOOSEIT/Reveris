@@ -1,8 +1,12 @@
 import os
+import io, base64
+import random
+import string
 
 from dotenv import load_dotenv
 from openai import OpenAI
 from random import randint
+from PIL import Image
 
 load_dotenv()
 
@@ -89,7 +93,7 @@ def query_openai_image_generation(prompt: str, style="vivid") -> str:
         style (str): The style of the image (standard or vivid)
 
     Returns:
-        str: The URL of the generated image
+        str: file path of the generated image
     """
     response = _openai_client.images.generate(
         model=_openai_model_image_model,
@@ -97,10 +101,22 @@ def query_openai_image_generation(prompt: str, style="vivid") -> str:
         size=_openai_model_image_resolution,
         quality=_openai_model_image_quality,
         style=style,
+        response_format="b64_json",
         n=1,
     )
     openai_add_image_generation(1)
-    return response.data[0].url
+
+    image_obj = response.data[0].b64_json
+    image_obj = Image.open(io.BytesIO(base64.b64decode(image_obj)))
+
+    filename = (
+        "out/"
+        + "".join(random.choices(string.ascii_letters + string.digits, k=6))
+        + ".jpg"
+    )
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    image_obj.save(filename, quality=100, subsampling=0)
+    return filename
 
 
 ###############################################################################################

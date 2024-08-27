@@ -267,8 +267,6 @@ class Story:
                         suggested_illustrations, key=lambda x: x["start_idx"]
                     )
 
-                    print(len(suggested_illustrations))
-
                     current_start = 0
 
                     for suggested_illustration in suggested_illustrations:

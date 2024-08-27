@@ -1,7 +1,7 @@
 import streamlit as st
 import time
 
-from story import Story
+from story.story import Story
 from streamlit_extras.stylable_container import stylable_container
 
 # ### FAKE GENERATION
@@ -66,13 +66,15 @@ from streamlit_extras.stylable_container import stylable_container
 def stream_data(text):
     for word in text.split(" "):
         yield word + " "
-        time.sleep(0.002)
+        time.sleep(0.05)
 
 
 if "story" not in st.session_state:
     st.session_state.story = None
 if "story_extension_requested" not in st.session_state:
     st.session_state.story_extension_requested = False
+if "is_title_displayed" not in st.session_state:
+    st.session_state.is_title_displayed = False
 
 
 def display_parts(parts, new_parts):
@@ -121,9 +123,7 @@ def display_parts(parts, new_parts):
 
 
 def start_dreaming():
-    st.session_state.story = Story(
-        "The story", "The overview", need_illustration=False, story_length=3
-    )
+    st.session_state.story = Story(need_illustration=False, story_length=3)
     st.session_state.story_extension_requested = True
 
 
@@ -134,6 +134,7 @@ def continue_dreaming():
 def stop_dreaming():
     st.session_state.story = None
     st.session_state.story_extension_requested = False
+    st.session_state.is_title_displayed = False
 
     # ### FAKE GENERATION
     # st.session_state.statestory_parts = []
@@ -154,7 +155,10 @@ def enter_user_input(text):
 
 def display_story():
     story = st.session_state.story
-    st.title(story.get_title())
+    title = story.get_title()
+    if title is not None:
+        st.title(story.get_title())
+        st.session_state.is_title_displayed = True
     display_parts(story.get_formatted_story(), False)
 
 
@@ -174,6 +178,11 @@ else:
             error_code, generated_part = story.generate_next_part()
 
         if error_code == 0:
+            title = story.get_title()
+            if title is not None and not st.session_state.is_title_displayed:
+                st.title(story.get_title())
+                st.session_state.is_title_displayed = True
+
             display_parts(generated_part, True)
         elif not (error_code == 1 or error_code == 2):
             st.error("An error occurred while generating the story.")

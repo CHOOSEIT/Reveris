@@ -1,4 +1,4 @@
-from story import Story
+from story.story import Story
 from openaiAPI import openai_show_usage
 from openaiAPI import query_openai_image_generation
 

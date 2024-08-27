@@ -194,6 +194,9 @@ def query_illustration(text: str, description: str, text_subpart: str):
         text (str): The entire text to generate the illustration
         description (str): The description of the illustration
         text_subpart (str): The text subpart that should be illustrated.
+
+    Returns:
+        str: path to the generated image
     """
 
     JSON_FORMAT = """
