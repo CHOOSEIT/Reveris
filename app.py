@@ -1,66 +1,9 @@
 import streamlit as st
 import time
 
-from story.story import Story
+from story.custom_story import CustomStory
+from story.ai_story import AIStory
 from streamlit_extras.stylable_container import stylable_container
-
-# ### FAKE GENERATION
-# ### FAKE GENERATION
-# ### FAKE GENERATION
-# if "statestory_parts" not in st.session_state:
-#     st.session_state.statestory_parts = []
-# if "it" not in st.session_state:
-#     st.session_state.it = 0
-
-
-# def fake_generation():
-#     if st.session_state.it == 0:
-#         part = [
-#             {"image": "out/img-5XkbU0ugs9hxI5G74gJz1pbG.png"},
-#             {
-#                 "text": "As you continue walking, the trees begin to thin, and in the distance, you spot a small village nestled in a valley. The rooftops of the cottages glisten under the sun, and a thin column of smoke rises from a chimney, suggesting warmth and life within."
-#             },
-#             {
-#                 "possible_choices": [
-#                     {"choice": "Continue exploring the forest"},
-#                     {"choice": "Approach the village"},
-#                 ]
-#             },
-#         ]
-#     elif st.session_state.it == 1:
-#         part = [
-#             {
-#                 "text": "You approach the village and step onto the cobblestone path leading into its heart. The houses are quaint, with thatched roofs and flower boxes under the windows. Villagers are going about their day, tending to chores, and you can hear the faint sound of laughter and conversation from within the homes."
-#             }
-#         ]
-#     elif st.session_state.it == 2:
-#         part = [
-#             {
-#                 "text": "In the center of the village, you notice a large, inviting tavern with a wooden sign swinging gently in the breeze. The sign reads 'The Wandering Bard.' The aroma of roasted meat and fresh bread wafts through the open door, and you can hear the lively chatter of patrons inside."
-#             }
-#         ]
-#     elif st.session_state.it == 3:
-#         part = [
-#             {
-#                 "text": "You decide to enter the tavern. As you push open the heavy wooden door, a wave of warmth and light greets you. The interior is cozy, with a crackling fire in the hearth and wooden tables scattered around. The tavern is bustling with activity—villagers are gathered in groups, sharing stories, and a bard in the corner is playing a soft melody on a lute."
-#             }
-#         ]
-#     else:
-#         part = []
-
-#     st.session_state.it = st.session_state.it + 1
-#     st.session_state.statestory_parts.extend(part)
-#     return part
-
-
-# ### FAKE GENERATION
-# ### FAKE GENERATION
-# ### FAKE GENERATION
-
-########################################################################################################################
-########################################################################################################################
-########################################################################################################################
-########################################################################################################################
 
 
 def stream_data(text):
@@ -123,7 +66,12 @@ def display_parts(parts, new_parts):
 
 
 def start_dreaming():
-    st.session_state.story = Story(need_illustration=False, story_length=3)
+    st.session_state.story = AIStory(
+        title="A village",
+        overview="A big village that you explore",
+        need_illustration=False,
+        story_length=3,
+    )
     st.session_state.story_extension_requested = True
 
 
@@ -136,19 +84,10 @@ def stop_dreaming():
     st.session_state.story_extension_requested = False
     st.session_state.is_title_displayed = False
 
-    # ### FAKE GENERATION
-    # st.session_state.statestory_parts = []
-    # st.session_state.it = 0
-    # ### FAKE GENERATION
-
 
 def enter_user_input(text):
     story = st.session_state.story
     story.input_user_answer(text)
-
-    # ### FAKE GENERATION
-    # st.session_state.statestory_parts.append({"user_choice": text})
-    # ### FAKE GENERATION
 
     continue_dreaming()
 
@@ -171,10 +110,6 @@ else:
     if st.session_state.story_extension_requested:
         story = st.session_state.story
         with st.spinner("Dreaming..."):
-            # ### FAKE GENERATION
-            # time.sleep(0.1)
-            # generated_part = fake_generation()
-            # ### FAKE GENERATION
             error_code, generated_part = story.generate_next_part()
 
         if error_code == 0:
