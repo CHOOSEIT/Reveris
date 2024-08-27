@@ -3,8 +3,15 @@ from typing import Tuple
 
 
 class CustomStory(Story):
-    def __init__(self, title=None, overview=None, story_length=3):
-        super().__init__(title, overview, True, story_length)
+    def __init__(
+        self, title=None, overview=None, need_illustration=True, story_length=3
+    ):
+        super().__init__(
+            title=title,
+            overview=overview,
+            need_illustration=need_illustration,
+            story_length=story_length,
+        )
         self.it = 0
 
     def _generate_idea(self) -> bool:

@@ -66,10 +66,10 @@ def display_parts(parts, new_parts):
 
 
 def start_dreaming():
-    st.session_state.story = AIStory(
+    st.session_state.story = CustomStory(
         title="A village",
         overview="A big village that you explore",
-        need_illustration=False,
+        need_illustration=True,
         story_length=3,
     )
     st.session_state.story_extension_requested = True
