@@ -2,7 +2,7 @@ import re
 
 from typing import Tuple, List
 from agents.ideaAgent import extract_json_answer
-from agents.utils.agent_utils import query_llm_with_feedback
+from agents.agent_utils import query_llm_with_feedback
 from openaiAPI import query_openai_image_generation
 
 

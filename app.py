@@ -69,16 +69,17 @@ def display_module(module, is_new):
 
         create_button = lambda choice: st.button(
             choice.get_displayed_text(),
+            key=f"button_user_input_{unique_key}_{i}",
             use_container_width=True,
             on_click=enter_user_input,
             args=(choice,),
             disabled=disabled,
         )
 
-        for choice_text in choices:
+        for i, choice_text in enumerate(choices):
             if made_choice == choice_text:
                 with stylable_container(
-                    key=f"selected_button_user_input_{unique_key}",
+                    key=f"selected_button_user_input_{unique_key}_{i}",
                     css_styles="""
                     button {
                     border: solid green;
@@ -112,9 +113,10 @@ def display_story():
 
 
 def start_dreaming():
-    st.session_state.story = CustomStory(
+    st.session_state.story = AIStory(
         title="A village",
         overview="A big village that you explore",
+        target_lang="FR",
         need_illustration=False,
         story_length=3,
     )

@@ -1,5 +1,7 @@
 from typing import List
 
+from agents.translationAgent import query_translation
+
 
 class StoryModules:
     def __init__(self):
@@ -28,7 +30,36 @@ class HasDisplayableText:
         self.displayed_text = displayed_text
 
 
-class TextModule(StoryModules, HasDisplayableText):
+class isTranslatable:
+    def __init__(self):
+        pass
+
+    def set_translation(self, target_lang: str):
+        """
+        Query the translation of the text and set it as the displayed text
+
+        Args:
+            target_lang (str): the language to translate the text (None -> English, Example: "FR" -> French)
+        """
+        raise NotImplementedError
+
+
+class HasDisplayableAndIsTranslatableText(HasDisplayableText, isTranslatable):
+    def __init__(self):
+        super(HasDisplayableText, self).__init__()
+        super(isTranslatable, self).__init__()
+
+    def set_translation(self, target_lang: str):
+        if target_lang is None:
+            return
+
+        translated_text = query_translation(
+            text=self.get_displayed_text(), target_lang=target_lang
+        )
+        self.set_displayed_text(translated_text)
+
+
+class TextModule(StoryModules, HasDisplayableAndIsTranslatableText):
     """
     Text module
 
@@ -45,7 +76,7 @@ class TextModule(StoryModules, HasDisplayableText):
             text (str): the text to display
         """
         super(StoryModules, self).__init__()
-        super(HasDisplayableText, self).__init__()
+        super(HasDisplayableAndIsTranslatableText, self).__init__()
         self.text = text
         self.set_displayed_text(displayed_text)
 
@@ -84,7 +115,7 @@ class ImageModule(StoryModules):
         return ""
 
 
-class ChoiceModule(StoryModules, HasDisplayableText):
+class ChoiceModule(StoryModules, HasDisplayableAndIsTranslatableText):
     """
     Choice module
 
@@ -101,7 +132,7 @@ class ChoiceModule(StoryModules, HasDisplayableText):
             choice (str): the choice text
         """
         super(StoryModules, self).__init__()
-        super(HasDisplayableText, self).__init__()
+        super(HasDisplayableAndIsTranslatableText, self).__init__()
         self.choice_text = choice_text
         self.set_displayed_text(displayed_choice_text)
 
@@ -121,7 +152,7 @@ class ChoiceModule(StoryModules, HasDisplayableText):
         return False
 
 
-class PossibleChoicesModule(StoryModules):
+class PossibleChoicesModule(StoryModules, isTranslatable):
     """
     Possible choices module
 
@@ -137,6 +168,7 @@ class PossibleChoicesModule(StoryModules):
             choices (list[ChoiceModule]): the list of choices
         """
         super(StoryModules, self).__init__()
+        super(isTranslatable, self).__init__()
         self.choices = choices
         self.selected = False
         self.selected_choice = None
@@ -161,12 +193,6 @@ class PossibleChoicesModule(StoryModules):
             return None
         return self.selected_choice
 
-    def to_prompt_string(self):
-        possible_choices_message = ""
-        user_choice = self.selected_choice.to_prompt_string() if self.selected else ""
-
-        return possible_choices_message + "\n" + user_choice
-
     def set_user_choice(self, user_choice):
         """
         Args:
@@ -174,3 +200,15 @@ class PossibleChoicesModule(StoryModules):
         """
         self.selected = True
         self.selected_choice = user_choice
+
+    # Override from StoryModules
+    def to_prompt_string(self):
+        possible_choices_message = ""
+        user_choice = self.selected_choice.to_prompt_string() if self.selected else ""
+
+        return possible_choices_message + "\n" + user_choice
+
+    # Override from isTranslatable
+    def set_translation(self, target_lang: str):
+        for choice in self.choices:
+            choice.set_translation(target_lang)

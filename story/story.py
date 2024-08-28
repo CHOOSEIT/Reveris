@@ -3,6 +3,7 @@ from story.story_modules import (
     StoryModules,
     ChoiceModule,
     PossibleChoicesModule,
+    isTranslatable,
 )
 
 ERRORCODE_NO_ERROR = 0
@@ -28,13 +29,33 @@ class StoryPart:
 
 class Story:
     def __init__(
-        self, title=None, overview=None, need_illustration=True, story_length=3
+        self,
+        title=None,
+        overview=None,
+        need_illustration=True,
+        target_lang=None,
+        story_length=3,
     ):
+        """
+        Story class.
+
+        Args:
+            title (str): the title of the story
+            overview (str): the overview of the story
+            need_illustration (bool): True if the story needs an illustration, False otherwise
+            target_lang (str): the language of the story (None -> english, Example: "FR")
+            story_length (int): the number of parts of the story
+
+        """
         self._title = title
         self._overview = overview
         self._story_max_length = story_length
         self._need_illustration = need_illustration
         self._story_parts = []
+
+        if target_lang is not None and target_lang.lower() == "en":
+            target_lang = None
+        self._target_lang = target_lang
 
     def set_need_illustration(self, need_illustration: bool):
         """
@@ -174,7 +195,16 @@ class Story:
 
             list[StoryModules]: The generated part of the story.
         """
-        modules = self._generate_next_modules()
-        self._add_part_to_story(modules)
+        error_code, modules = self._generate_next_modules()
 
-        return modules
+        if error_code == ERRORCODE_NO_ERROR:
+            # Translate the necessary modules
+            if self._target_lang is not None:
+                print("Translating the story...")
+                for module in modules:
+                    if isinstance(module, isTranslatable):
+                        module.set_translation(target_lang=self._target_lang)
+
+            self._add_part_to_story(modules)
+
+        return error_code, modules

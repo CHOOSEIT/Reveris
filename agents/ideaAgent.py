@@ -1,7 +1,7 @@
 import json
 
 from openaiAPI import query_openai
-from agents.utils.agent_utils import (
+from agents.agent_utils import (
     AGENT_INTRODUCTION,
     extract_json_answer,
     query_llm_with_feedback,

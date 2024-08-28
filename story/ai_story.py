@@ -24,9 +24,20 @@ from story.story_modules import (
 
 class AIStory(Story):
     def __init__(
-        self, title=None, overview=None, need_illustration=True, story_length=3
+        self,
+        title=None,
+        overview=None,
+        need_illustration=True,
+        target_lang=None,
+        story_length=3,
     ):
-        super().__init__(title, overview, need_illustration, story_length)
+        super().__init__(
+            title=title,
+            overview=overview,
+            need_illustration=need_illustration,
+            target_lang=target_lang,
+            story_length=story_length,
+        )
 
     def _generate_idea(self) -> bool:
         if self._title is None or self._overview is None:
