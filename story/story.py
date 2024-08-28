@@ -136,6 +136,26 @@ class Story:
         """
         raise NotImplementedError
 
+    def _generate_next_modules(self) -> Tuple[int, List[StoryModules]]:
+        """
+        Generate the next part of the story.
+
+        Returns:
+            int: error code:
+                - 0 if no error,
+
+                (text generation)
+                - 1 waiting for user input
+                - 2 the story is already complete
+                - 3 text generation error
+
+                (image generation)
+                - 4 image generation error
+
+            list[StoryModules]: The generated modules of the story.
+        """
+        raise NotImplementedError
+
     def generate_next_part(self) -> Tuple[int, List[StoryModules]]:
         """
         Generate the next part of the story.
@@ -154,4 +174,7 @@ class Story:
 
             list[StoryModules]: The generated part of the story.
         """
-        raise NotImplementedError
+        modules = self._generate_next_modules()
+        self._add_part_to_story(modules)
+
+        return modules

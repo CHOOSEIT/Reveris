@@ -112,8 +112,8 @@ class AIStory(Story):
 
         return ERRORCODE_NO_ERROR, generated_part
 
-    def generate_next_part(self) -> Tuple[int, dict]:
-        generated_output = []
+    def _generate_next_modules(self) -> Tuple[int, List[StoryModules]]:
+        generated_modules = []
         text_code_error, generated_modules = self._generate_text_next_part()
 
         if generated_modules is None:
@@ -140,7 +140,7 @@ class AIStory(Story):
                         seperated = generated_text[current_start:end]
 
                         if len(seperated) != 0:
-                            generated_output.append(TextModule(seperated))
+                            generated_modules.append(TextModule(seperated))
 
                         # Generate the illustration
                         print("Generating an illustration ...")
@@ -150,16 +150,14 @@ class AIStory(Story):
                             text_subpart=suggested_illustration["text"],
                         )
 
-                        generated_output.append(ImageModule(url))
+                        generated_modules.append(ImageModule(url))
                         current_start = end
 
                     final_separation = generated_text[current_start:]
-                    generated_output.append(TextModule(final_separation))
+                    generated_modules.append(TextModule(final_separation))
                 else:
-                    generated_output.append(module)
+                    generated_modules.append(module)
             else:
-                generated_output.append(module)
+                generated_modules.append(module)
 
-        self._add_part_to_story(generated_output)
-
-        return ERRORCODE_NO_ERROR, generated_output
+        return ERRORCODE_NO_ERROR, generated_modules

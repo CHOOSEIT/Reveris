@@ -26,7 +26,7 @@ class CustomStory(Story):
 
         return True
 
-    def generate_next_part(self) -> Tuple[int, List[StoryModules]]:
+    def _generate_next_modules(self) -> Tuple[int, List[StoryModules]]:
         current_story_length = self._get_story_current_length()
         if current_story_length == 0:
             part = [
@@ -70,5 +70,4 @@ class CustomStory(Story):
         else:
             return ERRORCODE_STORY_COMPLETE, None
 
-        self._add_part_to_story(part)
         return ERRORCODE_NO_ERROR, part
