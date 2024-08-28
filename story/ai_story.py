@@ -125,12 +125,12 @@ class AIStory(Story):
 
     def _generate_next_modules(self) -> Tuple[int, List[StoryModules]]:
         generated_modules = []
-        text_code_error, generated_modules = self._generate_text_next_part()
+        text_code_error, generated_output = self._generate_text_next_part()
 
-        if generated_modules is None:
+        if generated_output is None:
             return text_code_error, None
 
-        for module in generated_modules:
+        for module in generated_output:
             if isinstance(module, TextModule):
                 generated_text = module.get_text()
                 if self._need_illustration:
