@@ -104,9 +104,24 @@ class Story:
         """
         return self._formatted_story
 
+    def _add_part_to_story(self, part: dict):
+        """
+        Add a part to the story.
+
+        Args:
+            part (dict): the part to add to the story under the following format:
+                {
+                    "text": "Generated text"
+                }
+        """
+        self._story_current_length += 1
+        # Add the generated output to the formatted story
+        self._formatted_story.extend(part)
+
     def _generate_idea(self) -> bool:
         """
         Generate a new story idea.
+        It generate and set the title and overview of the story.
 
         Returns:
             bool: True if no error occurred, False otherwise

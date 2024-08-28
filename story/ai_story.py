@@ -22,13 +22,6 @@ class AIStory(Story):
         super().__init__(title, overview, need_illustration, story_length)
 
     def _generate_idea(self) -> bool:
-        """
-        Generate a new story idea.
-
-        Returns:
-            bool: True if no error occurred, False otherwise
-
-        """
         if self._title is None or self._overview is None:
             print("Generating a new story idea...")
             title, overview = generate_title_overview_story()
@@ -42,34 +35,6 @@ class AIStory(Story):
         return True
 
     def _generate_text_next_part(self) -> Tuple[int, str]:
-        """
-        Generate the next part of the story.
-
-        Returns:
-            int: error code:
-                - 0 if no error,
-                - 1 waiting for user input
-                - 2 the story is already complete
-                - 3 generation error
-            str: The generated part of the story under the following format:
-                [
-                    {
-                        "text": "Generated text"
-                    },
-                    {
-                        "possible_choices": [
-                            {
-                                "choice": "Choice 1",
-
-                            },
-                            {
-                                "choice": "Choice 2",
-                            },
-                            ...
-                        ]
-                    },
-                ]
-        """
         if self._story_current_length > self._story_max_length:
             print("The story is already complete.")
             return ERRORCODE_STORY_COMPLETE, None
@@ -133,28 +98,9 @@ class AIStory(Story):
 
             generated_part.append({"text": end})
 
-        self._story_current_length += 1
-
         return ERRORCODE_NO_ERROR, generated_part
 
     def generate_next_part(self) -> Tuple[int, dict]:
-        """
-        Generate the next part of the story.
-
-        Returns:
-            int: error code:
-                - 0 if no error,
-
-                (text generation)
-                - 1 waiting for user input
-                - 2 the story is already complete
-                - 3 text generation error
-
-                (image generation)
-                - 4 image generation error
-
-            dict: The generated part of the story under the formatted format.
-        """
         generated_output = []
         text_code_error, generated_parts = self._generate_text_next_part()
 
@@ -202,7 +148,6 @@ class AIStory(Story):
                 else:
                     generated_output.append({"text": generated_text})
 
-        # Add the generated output to the formatted story
-        self._formatted_story.extend(generated_output)
+        self._add_part_to_story(generated_output)
 
         return ERRORCODE_NO_ERROR, generated_output

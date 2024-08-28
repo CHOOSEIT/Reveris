@@ -69,7 +69,7 @@ def start_dreaming():
     st.session_state.story = CustomStory(
         title="A village",
         overview="A big village that you explore",
-        need_illustration=True,
+        need_illustration=False,
         story_length=3,
     )
     st.session_state.story_extension_requested = True

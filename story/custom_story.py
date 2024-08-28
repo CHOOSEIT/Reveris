@@ -65,9 +65,6 @@ class CustomStory(Story):
         else:
             return ERRORCODE_STORY_COMPLETE, None
 
-        self._story_current_length += 1
         self.it += 1
-        # Add the generated output to the formatted story
-        self._formatted_story.extend(part)
-
+        self._add_part_to_story(part)
         return ERRORCODE_NO_ERROR, part
