@@ -1,5 +1,7 @@
 import streamlit as st
 import time
+import random
+import string
 
 from story.custom_story import CustomStory
 from story.ai_story import AIStory
@@ -33,22 +35,34 @@ if "is_title_displayed" not in st.session_state:
 ### Display functions
 
 
-def display_module(module, is_new, id):
+def isinstance_streamlit(module: StoryModules, module_type: type):
+    """
+    Check if a module is of a certain type.
+
+    Args:
+        module (StoryModules): the module to check (Ex: a module)
+        module_type (StoryModules): the type to check for (Ex: TextModule)
+    """
+    # Fix for the issue: isinstance(module, module_type) does not work when 'rerunning' the script
+    return module.__class__.__name__ == module_type.__name__
+
+
+def display_module(module, is_new):
     """
     Display a story module.
 
     Args:
         module (StoryModules): the module to display
         is_new (bool): whether the module is new
-        id (int): unique id for the module
     """
-    if isinstance(module, TextModule):
+    unique_key = "".join(random.choices(string.ascii_letters + string.digits, k=6))
+    if isinstance_streamlit(module, TextModule):
         choice_text = module.get_displayed_text()
         displayed_text = stream_data(choice_text) if is_new else choice_text
         st.write(displayed_text)
-    elif isinstance(module, ImageModule):
+    elif isinstance_streamlit(module, ImageModule):
         st.image(module.get_image_path(), use_column_width=True)
-    elif isinstance(module, PossibleChoicesModule):
+    elif isinstance_streamlit(module, PossibleChoicesModule):
         disabled = module.has_selected_choice()
         made_choice = module.get_selected_choice()
         choices = [choice for choice in module.get_choices()]
@@ -64,7 +78,7 @@ def display_module(module, is_new, id):
         for choice_text in choices:
             if made_choice == choice_text:
                 with stylable_container(
-                    key=f"selected_button_user_input_{id}",
+                    key=f"selected_button_user_input_{unique_key}",
                     css_styles="""
                     button {
                     border: solid green;
@@ -78,8 +92,8 @@ def display_module(module, is_new, id):
 
 
 def display_modules(modules, new_modules):
-    for i, module in enumerate(modules):
-        display_module(module, new_modules, i)
+    for module in modules:
+        display_module(module, new_modules)
 
 
 def display_story():
@@ -98,7 +112,7 @@ def display_story():
 
 
 def start_dreaming():
-    st.session_state.story = CustomStory(
+    st.session_state.story = AIStory(
         title="A village",
         overview="A big village that you explore",
         need_illustration=False,
@@ -127,7 +141,7 @@ def enter_user_input(choice: ChoiceModule):
 ### Main
 
 if st.session_state.story is None:
-    st.title("💭 Reveris 💭")
+    st.title("💭 Reveries 💭")
     st.button(":rainbow: Start dreaming :rainbow:", on_click=start_dreaming)
 
 else:
