@@ -60,7 +60,9 @@ class Story:
         if len(self._story_parts) == 0:
             return False
         last_module = self._story_parts[-1][-1]
-        return isinstance(last_module, PossibleChoicesModule)
+        if isinstance(last_module, PossibleChoicesModule):
+            return not last_module.has_selected_choice()
+        return False
 
     def get_title(self) -> str:
         """
