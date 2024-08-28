@@ -17,14 +17,23 @@ class TextModule(StoryModules):
         text (str): the text to display
     """
 
-    def __init__(self, text: str):
+    def __init__(self, text: str, displayed_text: str = None):
         self.text = text
+        self.displayed_text = displayed_text
 
     def get_text(self):
         return self.text
 
     def to_prompt_string(self):
         return self.text
+
+    def get_displayed_text(self):
+        if self.displayed_text is None:
+            return self.text
+        return self.displayed_text
+
+    def set_displayed_text(self, displayed_text):
+        self.displayed_text = displayed_text
 
 
 class ImageModule(StoryModules):
@@ -53,11 +62,20 @@ class ChoiceModule(StoryModules):
         choice (str): the choice text
     """
 
-    def __init__(self, choice_text: str):
+    def __init__(self, choice_text: str, displayed_choice_text: str = None):
         self.choice_text = choice_text
+        self.displayed_choice_text = displayed_choice_text
 
     def get_choice_text(self):
         return self.choice_text
+
+    def get_displayed_choice_text(self):
+        if self.displayed_choice_text is None:
+            return self.choice_text
+        return self.displayed_choice_text
+
+    def set_displayed_choice_text(self, displayed_choice_text):
+        self.displayed_choice_text = displayed_choice_text
 
     def to_prompt_string(self):
         return "->" + self.choice_text

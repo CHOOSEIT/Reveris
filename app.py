@@ -12,12 +12,16 @@ from story.story_modules import (
     PossibleChoicesModule,
 )
 
+### Helper
+
 
 def stream_data(text):
     for word in text.split(" "):
         yield word + " "
         time.sleep(0.05)
 
+
+### Variable initialization
 
 if "story" not in st.session_state:
     st.session_state.story = None
@@ -26,42 +30,68 @@ if "story_extension_requested" not in st.session_state:
 if "is_title_displayed" not in st.session_state:
     st.session_state.is_title_displayed = False
 
+### Display functions
+
+
+def display_module(module, is_new, id):
+    """
+    Display a story module.
+
+    Args:
+        module (StoryModules): the module to display
+        is_new (bool): whether the module is new
+        id (int): unique id for the module
+    """
+    if isinstance(module, TextModule):
+        choice_text = module.get_displayed_text()
+        displayed_text = stream_data(choice_text) if is_new else choice_text
+        st.write(displayed_text)
+    elif isinstance(module, ImageModule):
+        st.image(module.get_image_path(), use_column_width=True)
+    elif isinstance(module, PossibleChoicesModule):
+        disabled = module.has_selected_choice()
+        made_choice = module.get_selected_choice()
+        choices = [choice for choice in module.get_choices()]
+
+        create_button = lambda choice: st.button(
+            choice.get_displayed_choice_text(),
+            use_container_width=True,
+            on_click=enter_user_input,
+            args=(choice,),
+            disabled=disabled,
+        )
+
+        for choice_text in choices:
+            if made_choice == choice_text:
+                with stylable_container(
+                    key=f"selected_button_user_input_{id}",
+                    css_styles="""
+                    button {
+                    border: solid green;
+                    color: green;
+                    }
+                    """,
+                ):
+                    create_button(choice_text)
+            else:
+                create_button(choice_text)
+
 
 def display_modules(modules, new_modules):
     for i, module in enumerate(modules):
-        if isinstance(module, TextModule):
-            choice = module.get_text()
-            displayed_text = stream_data(choice) if new_modules else choice
-            st.write(displayed_text)
-        elif isinstance(module, ImageModule):
-            st.image(module.get_image_path(), use_column_width=True)
-        elif isinstance(module, PossibleChoicesModule):
-            disabled = module.has_selected_choice()
-            made_choice = module.get_selected_choice()
-            choices = [choice for choice in module.get_choices()]
+        display_module(module, new_modules, i)
 
-            create_button = lambda choice: st.button(
-                choice.get_choice_text(),
-                use_container_width=True,
-                on_click=enter_user_input,
-                args=(choice,),
-                disabled=disabled,
-            )
 
-            for choice in choices:
-                if made_choice == choice:
-                    with stylable_container(
-                        key=f"selected_button_user_input_{i}",
-                        css_styles="""
-                        button {
-                        border: solid green;
-                        color: green;
-                        }
-                        """,
-                    ):
-                        create_button(choice)
-                else:
-                    create_button(choice)
+def display_story():
+    story = st.session_state.story
+    title = story.get_title()
+    if title is not None:
+        st.title(story.get_title())
+        st.session_state.is_title_displayed = True
+    display_modules(story.get_formatted_story(), False)
+
+
+### Main functions
 
 
 def start_dreaming():
@@ -91,14 +121,7 @@ def enter_user_input(choice: ChoiceModule):
     continue_dreaming()
 
 
-def display_story():
-    story = st.session_state.story
-    title = story.get_title()
-    if title is not None:
-        st.title(story.get_title())
-        st.session_state.is_title_displayed = True
-    display_modules(story.get_formatted_story(), False)
-
+### Main
 
 if st.session_state.story is None:
     st.title("💭 Reveris 💭")
