@@ -28,7 +28,6 @@ if "is_title_displayed" not in st.session_state:
 
 
 def display_modules(modules, new_modules):
-    num_of_modules = len(modules)
     for i, module in enumerate(modules):
         if isinstance(module, TextModule):
             choice = module.get_text()
@@ -37,15 +36,9 @@ def display_modules(modules, new_modules):
         elif isinstance(module, ImageModule):
             st.image(module.get_image_path(), use_column_width=True)
         elif isinstance(module, PossibleChoicesModule):
-            disabled = i != num_of_modules - 1
-
+            disabled = module.has_selected_choice()
+            made_choice = module.get_selected_choice()
             choices = [choice for choice in module.get_choices()]
-            made_choice = None
-            if disabled:
-                # This means that the user may have already made a choice
-                next_part = modules[i + 1]
-                if isinstance(next_part, ChoiceModule):
-                    made_choice = next_part
 
             create_button = lambda choice: st.button(
                 choice.get_choice_text(),

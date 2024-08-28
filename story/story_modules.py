@@ -74,15 +74,51 @@ class PossibleChoicesModule(StoryModules):
     """
     Possible choices module
 
-    Args:
-        choices (list[Choice]): the list of choices
+    Parameters:
+        choices (list[ChoiceModule]): the list of choices
+        selected (bool): whether the user has selected a choice
+        selected_choice (ChoiceModule): the selected choice
     """
 
     def __init__(self, choices: List[ChoiceModule]):
+        """
+        Args:
+            choices (list[ChoiceModule]): the list of choices
+        """
         self.choices = choices
+        self.selected = False
+        self.selected_choice = None
 
     def get_choices(self):
         return self.choices
 
+    def has_selected_choice(self):
+        """
+        Get whether the user has selected a choice
+        """
+        return self.selected
+
+    def get_selected_choice(self):
+        """
+        Get the selected choice
+
+        Returns:
+            ChoiceModule: the selected choice or None if no choice has been selected
+        """
+        if not self.has_selected_choice():
+            return None
+        return self.selected_choice
+
     def to_prompt_string(self):
-        return ""
+        possible_choices_message = ""
+        user_choice = self.selected_choice.to_prompt_string() if self.selected else ""
+
+        return possible_choices_message + "\n" + user_choice
+
+    def set_user_choice(self, user_choice):
+        """
+        Args:
+            user_choice (ChoiceModule): the user choice
+        """
+        self.selected = True
+        self.selected_choice = user_choice

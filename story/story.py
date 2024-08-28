@@ -36,7 +36,9 @@ class Story:
         """
         Input the user choice in the story.
         """
-        self._formatted_story.append(user_choice)
+        if self.is_waiting_for_user_input():
+            possible_choices = self._formatted_story[-1]
+            possible_choices.set_user_choice(user_choice)
 
     def is_waiting_for_user_input(self) -> bool:
         """
