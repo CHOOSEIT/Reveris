@@ -19,7 +19,6 @@ class CustomStory(Story):
             need_illustration=need_illustration,
             story_length=story_length,
         )
-        self.it = 0
 
     def _generate_idea(self) -> bool:
         self.title = "The story of a dreamer"
@@ -28,7 +27,8 @@ class CustomStory(Story):
         return True
 
     def generate_next_part(self) -> Tuple[int, List[StoryModules]]:
-        if self.it == 0:
+        current_story_length = self._get_story_current_length()
+        if current_story_length == 0:
             part = [
                 ImageModule("out/img-5XkbU0ugs9hxI5G74gJz1pbG.png"),
                 TextModule(
@@ -41,7 +41,7 @@ class CustomStory(Story):
                     ]
                 ),
             ]
-        elif self.it == 1:
+        elif current_story_length == 1:
             part = [
                 TextModule("The dreamer decided to continue dreaming."),
                 ImageModule("out/qemQ2o.jpg"),
@@ -53,7 +53,7 @@ class CustomStory(Story):
                     ]
                 ),
             ]
-        elif self.it == 2:
+        elif current_story_length == 2:
             part = [
                 TextModule("The dreamer decided to continue dreaming. *again*"),
                 ImageModule("out/village.jpg"),
@@ -65,11 +65,10 @@ class CustomStory(Story):
                     ]
                 ),
             ]
-        elif self.it == 3:
+        elif current_story_length == 3:
             part = [TextModule("The end")]
         else:
             return ERRORCODE_STORY_COMPLETE, None
 
-        self.it += 1
         self._add_part_to_story(part)
         return ERRORCODE_NO_ERROR, part

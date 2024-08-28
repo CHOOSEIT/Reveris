@@ -88,14 +88,17 @@ def display_story():
     if title is not None:
         st.title(story.get_title())
         st.session_state.is_title_displayed = True
-    display_modules(story.get_formatted_story(), False)
+
+    story_parts = story.get_story_parts()
+    for story_part in story_parts:
+        display_modules(story_part, False)
 
 
 ### Main functions
 
 
 def start_dreaming():
-    st.session_state.story = CustomStory(
+    st.session_state.story = AIStory(
         title="A village",
         overview="A big village that you explore",
         need_illustration=False,

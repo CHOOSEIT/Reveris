@@ -42,7 +42,8 @@ class AIStory(Story):
         return True
 
     def _generate_text_next_part(self) -> Tuple[int, List[StoryModules]]:
-        if self._story_current_length > self._story_max_length:
+        current_story_length = self._get_story_current_length()
+        if current_story_length > self._story_max_length:
             print("The story is already complete.")
             return ERRORCODE_STORY_COMPLETE, None
 
@@ -58,7 +59,7 @@ class AIStory(Story):
 
         generated_part = []
         # We need to generate the introduction first
-        if self._story_current_length == 0:
+        if current_story_length == 0:
             ###
             # Generate the story introduction
             ###
@@ -71,9 +72,9 @@ class AIStory(Story):
 
             generated_part.append(TextModule(introduction))
 
-        story = self.get_story()
+        story = self.get_prompt_story()
 
-        if self._story_current_length < self._story_max_length:
+        if current_story_length < self._story_max_length:
             ###
             # Generate the story extension
             ###
@@ -81,7 +82,7 @@ class AIStory(Story):
             extension = query_story_continuation(
                 self._overview,
                 story,
-                self._story_current_length + 1,
+                current_story_length + 1,
                 self._story_max_length,
             )
 
@@ -96,7 +97,7 @@ class AIStory(Story):
             generated_part.append(TextModule(extension["story_content"]))
             generated_part.append(PossibleChoicesModule(list_of_choices))
 
-        elif self._story_current_length == self._story_max_length:
+        elif current_story_length == self._story_max_length:
             ###
             # Generate the end
             ###
@@ -144,7 +145,7 @@ class AIStory(Story):
                         # Generate the illustration
                         print("Generating an illustration ...")
                         url = query_illustration(
-                            text=self.get_story(),
+                            text=self.get_prompt_story(),
                             description=suggested_illustration["description"],
                             text_subpart=suggested_illustration["text"],
                         )
