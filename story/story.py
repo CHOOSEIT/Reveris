@@ -1,4 +1,9 @@
-from typing import Tuple
+from typing import Tuple, List
+from story.story_modules import (
+    StoryModules,
+    ChoiceModule,
+    PossibleChoicesModule,
+)
 
 ERRORCODE_NO_ERROR = 0
 ERRORCODE_WAITING_FOR_USER_INPUT = 1
@@ -27,11 +32,11 @@ class Story:
         """
         self._need_illustration = need_illustration
 
-    def input_user_answer(self, user_choice: str):
+    def input_user_answer(self, user_choice: ChoiceModule):
         """
         Input the user choice in the story.
         """
-        self._formatted_story.append({"user_choice": user_choice})
+        self._formatted_story.append(user_choice)
 
     def is_waiting_for_user_input(self) -> bool:
         """
@@ -39,7 +44,8 @@ class Story:
         """
         if len(self._formatted_story) == 0:
             return False
-        return "possible_choices" in self._formatted_story[-1]
+        last_module = self._formatted_story[-1]
+        return isinstance(last_module, PossibleChoicesModule)
 
     def get_title(self) -> str:
         """
@@ -57,62 +63,23 @@ class Story:
         Returns:
             str: the generated story
         """
-        story = ""
-        for part in self._formatted_story:
-            if "text" in part:
-                story += part["text"] + "\n"
-            elif "user_choice" in part:
-                story += "-> " + part["user_choice"] + "\n"
-        return story
+        return "\n".join([part.to_prompt_string() for part in self._formatted_story])
 
-    def get_formatted_story(self) -> list:
+    def get_formatted_story(self) -> List[StoryModules]:
         """
         Get the formatted story.
 
         Returns:
-            list: the formatted parts of the story under the following format:
-                [
-                    {
-                        "text": "Generated text"
-                    },
-                    {
-                        "image": "Generated image"
-                    },
-                    {
-                        "text": "Generated text"
-                    },
-                    {
-                        "possible_choices": [
-                            {
-                                "choice": "Choice 1",
-
-                            },
-                            {
-                                "choice": "Choice 2",
-                            },
-                            ...
-                        ]
-                    },
-                    {
-                        "user_choice": "User choice"
-                    },
-                    {
-                        "text": "Generated text"
-                    },
-                    ...
-                ]
+            list of modules that compose the story
         """
         return self._formatted_story
 
-    def _add_part_to_story(self, part: dict):
+    def _add_part_to_story(self, part: List[StoryModules]):
         """
         Add a part to the story.
 
         Args:
-            part (dict): the part to add to the story under the following format:
-                {
-                    "text": "Generated text"
-                }
+            list[StoryModule]: the part to add to the story
         """
         self._story_current_length += 1
         # Add the generated output to the formatted story
@@ -129,7 +96,7 @@ class Story:
         """
         raise NotImplementedError
 
-    def _generate_text_next_part(self) -> Tuple[int, str]:
+    def _generate_text_next_part(self) -> Tuple[int, List[StoryModules]]:
         """
         Generate the next part of the story.
 
@@ -139,28 +106,11 @@ class Story:
                 - 1 waiting for user input
                 - 2 the story is already complete
                 - 3 generation error
-            str: The generated part of the story under the following format:
-                [
-                    {
-                        "text": "Generated text"
-                    },
-                    {
-                        "possible_choices": [
-                            {
-                                "choice": "Choice 1",
-
-                            },
-                            {
-                                "choice": "Choice 2",
-                            },
-                            ...
-                        ]
-                    },
-                ]
+            list[StoryModules]: The generated part of the story.
         """
         raise NotImplementedError
 
-    def generate_next_part(self) -> Tuple[int, dict]:
+    def generate_next_part(self) -> Tuple[int, List[StoryModules]]:
         """
         Generate the next part of the story.
 
@@ -176,6 +126,6 @@ class Story:
                 (image generation)
                 - 4 image generation error
 
-            dict: The generated part of the story under the formatted format.
+            list[StoryModules]: The generated part of the story.
         """
         raise NotImplementedError

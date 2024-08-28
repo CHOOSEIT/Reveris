@@ -12,7 +12,14 @@ from agents.writerAgent import (
 )
 from agents.illustratorAgent import query_suggested_illustrations, query_illustration
 from agents.ideaAgent import generate_title_overview_story
-from typing import Tuple
+from typing import Tuple, List
+from story.story_modules import (
+    StoryModules,
+    ImageModule,
+    TextModule,
+    ChoiceModule,
+    PossibleChoicesModule,
+)
 
 
 class AIStory(Story):
@@ -34,7 +41,7 @@ class AIStory(Story):
 
         return True
 
-    def _generate_text_next_part(self) -> Tuple[int, str]:
+    def _generate_text_next_part(self) -> Tuple[int, List[StoryModules]]:
         if self._story_current_length > self._story_max_length:
             print("The story is already complete.")
             return ERRORCODE_STORY_COMPLETE, None
@@ -62,7 +69,7 @@ class AIStory(Story):
                 print("Failed to generate the introduction.")
                 return ERRORCODE_TEXT_GENERATION_ERROR, None
 
-            generated_part.append({"text": introduction})
+            generated_part.append(TextModule(introduction))
 
         story = self.get_story()
 
@@ -82,8 +89,12 @@ class AIStory(Story):
                 print("Failed to generate the extension.")
                 return ERRORCODE_TEXT_GENERATION_ERROR, None
 
-            generated_part.append({"text": extension["story_content"]})
-            generated_part.append({"possible_choices": extension["choices"]})
+            list_of_choices = []
+            for choice in extension["choices"]:
+                list_of_choices.append(ChoiceModule(choice["choice"]))
+
+            generated_part.append(TextModule(extension["story_content"]))
+            generated_part.append(PossibleChoicesModule(list_of_choices))
 
         elif self._story_current_length == self._story_max_length:
             ###
@@ -96,22 +107,20 @@ class AIStory(Story):
                 print("Failed to generate the end.")
                 return ERRORCODE_TEXT_GENERATION_ERROR, None
 
-            generated_part.append({"text": end})
+            generated_part.append(TextModule(end))
 
         return ERRORCODE_NO_ERROR, generated_part
 
     def generate_next_part(self) -> Tuple[int, dict]:
         generated_output = []
-        text_code_error, generated_parts = self._generate_text_next_part()
+        text_code_error, generated_modules = self._generate_text_next_part()
 
-        if generated_parts is None:
+        if generated_modules is None:
             return text_code_error, None
 
-        for part in generated_parts:
-            if "possible_choices" in part:
-                generated_output.append({"possible_choices": part["possible_choices"]})
-            elif "text" in part:
-                generated_text = part["text"]
+        for module in generated_modules:
+            if isinstance(module, TextModule):
+                generated_text = module.get_text()
                 if self._need_illustration:
                     # Generate the illustrations
 
@@ -130,7 +139,7 @@ class AIStory(Story):
                         seperated = generated_text[current_start:end]
 
                         if len(seperated) != 0:
-                            generated_output.append({"text": seperated})
+                            generated_output.append(TextModule(seperated))
 
                         # Generate the illustration
                         print("Generating an illustration ...")
@@ -140,13 +149,15 @@ class AIStory(Story):
                             text_subpart=suggested_illustration["text"],
                         )
 
-                        generated_output.append({"image": url})
+                        generated_output.append(ImageModule(url))
                         current_start = end
 
                     final_separation = generated_text[current_start:]
-                    generated_output.append({"text": final_separation})
+                    generated_output.append(TextModule(final_separation))
                 else:
-                    generated_output.append({"text": generated_text})
+                    generated_output.append(module)
+            else:
+                generated_output.append(module)
 
         self._add_part_to_story(generated_output)
 

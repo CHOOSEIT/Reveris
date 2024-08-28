@@ -4,6 +4,13 @@ import time
 from story.custom_story import CustomStory
 from story.ai_story import AIStory
 from streamlit_extras.stylable_container import stylable_container
+from story.story_modules import (
+    StoryModules,
+    ImageModule,
+    TextModule,
+    ChoiceModule,
+    PossibleChoicesModule,
+)
 
 
 def stream_data(text):
@@ -20,37 +27,36 @@ if "is_title_displayed" not in st.session_state:
     st.session_state.is_title_displayed = False
 
 
-def display_parts(parts, new_parts):
-    num_of_parts = len(parts)
-    for i, part in enumerate(parts):
-        if "text" in part:
-            if new_parts:
-                st.write(stream_data(part["text"]))
-            else:
-                st.write(part["text"])
-        elif "image" in part:
-            st.image(part["image"], use_column_width=True)
-        elif "possible_choices" in part:
-            disabled = i != num_of_parts - 1
+def display_modules(modules, new_modules):
+    num_of_modules = len(modules)
+    for i, module in enumerate(modules):
+        if isinstance(module, TextModule):
+            choice = module.get_text()
+            displayed_text = stream_data(choice) if new_modules else choice
+            st.write(displayed_text)
+        elif isinstance(module, ImageModule):
+            st.image(module.get_image_path(), use_column_width=True)
+        elif isinstance(module, PossibleChoicesModule):
+            disabled = i != num_of_modules - 1
 
-            choices = [text["choice"] for text in part["possible_choices"]]
+            choices = [choice for choice in module.get_choices()]
             made_choice = None
             if disabled:
                 # This means that the user may have already made a choice
-                next_part = parts[i + 1]
-                if "user_choice" in next_part:
-                    made_choice = next_part["user_choice"]
+                next_part = modules[i + 1]
+                if isinstance(next_part, ChoiceModule):
+                    made_choice = next_part
 
-            create_button = lambda text: st.button(
-                text,
+            create_button = lambda choice: st.button(
+                choice.get_choice_text(),
                 use_container_width=True,
                 on_click=enter_user_input,
-                args=(text,),
+                args=(choice,),
                 disabled=disabled,
             )
 
-            for text in choices:
-                if made_choice == text:
+            for choice in choices:
+                if made_choice == choice:
                     with stylable_container(
                         key=f"selected_button_user_input_{i}",
                         css_styles="""
@@ -60,9 +66,9 @@ def display_parts(parts, new_parts):
                         }
                         """,
                     ):
-                        create_button(text)
+                        create_button(choice)
                 else:
-                    create_button(text)
+                    create_button(choice)
 
 
 def start_dreaming():
@@ -85,9 +91,9 @@ def stop_dreaming():
     st.session_state.is_title_displayed = False
 
 
-def enter_user_input(text):
+def enter_user_input(choice: ChoiceModule):
     story = st.session_state.story
-    story.input_user_answer(text)
+    story.input_user_answer(choice)
 
     continue_dreaming()
 
@@ -98,7 +104,7 @@ def display_story():
     if title is not None:
         st.title(story.get_title())
         st.session_state.is_title_displayed = True
-    display_parts(story.get_formatted_story(), False)
+    display_modules(story.get_formatted_story(), False)
 
 
 if st.session_state.story is None:
@@ -118,7 +124,7 @@ else:
                 st.title(story.get_title())
                 st.session_state.is_title_displayed = True
 
-            display_parts(generated_part, True)
+            display_modules(generated_part, True)
         elif not (error_code == 1 or error_code == 2):
             st.error("An error occurred while generating the story.")
             st.error("Error code: " + str(error_code))

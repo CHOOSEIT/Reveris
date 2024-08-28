@@ -1,5 +1,12 @@
 from story.story import Story, ERRORCODE_NO_ERROR, ERRORCODE_STORY_COMPLETE
-from typing import Tuple
+from typing import Tuple, List
+from story.story_modules import (
+    StoryModules,
+    ImageModule,
+    TextModule,
+    ChoiceModule,
+    PossibleChoicesModule,
+)
 
 
 class CustomStory(Story):
@@ -20,48 +27,46 @@ class CustomStory(Story):
 
         return True
 
-    def generate_next_part(self) -> Tuple[int, dict]:
+    def generate_next_part(self) -> Tuple[int, List[StoryModules]]:
         if self.it == 0:
             part = [
-                {"image": "out/img-5XkbU0ugs9hxI5G74gJz1pbG.png"},
-                {
-                    "text": "Once upon a time, in a world of dreams, there was a dreamer who was searching for the meaning of life."
-                },
-                {
-                    "possible_choices": [
-                        {"choice": "Continue dreaming"},
-                        {"choice": "Wake up"},
+                ImageModule("out/img-5XkbU0ugs9hxI5G74gJz1pbG.png"),
+                TextModule(
+                    "Once upon a time, in a world of dreams, there was a dreamer who was searching for the meaning of life."
+                ),
+                PossibleChoicesModule(
+                    [
+                        ChoiceModule("Continue dreaming"),
+                        ChoiceModule("Wake up"),
                     ]
-                },
+                ),
             ]
         elif self.it == 1:
             part = [
-                {"text": "The dreamer decided to continue dreaming."},
-                {"image": "out/qemQ2o.jpg"},
-                {"text": "The dreamer found himself in a beautiful forest."},
-                {
-                    "possible_choices": [
-                        {"choice": "Continue dreaming 2"},
-                        {"choice": "Wake up 2"},
+                TextModule("The dreamer decided to continue dreaming."),
+                ImageModule("out/qemQ2o.jpg"),
+                TextModule("The dreamer found himself in a beautiful forest."),
+                PossibleChoicesModule(
+                    [
+                        ChoiceModule("Continue dreaming 2"),
+                        ChoiceModule("Wake up 2"),
                     ]
-                },
+                ),
             ]
         elif self.it == 2:
             part = [
-                {"text": "The dreamer decided to continue dreaming. *again*"},
-                {"image": "out/village.jpg"},
-                {"text": "The dreamer found himself in a peaceful village."},
-                {
-                    "possible_choices": [
-                        {"choice": "Continue dreaming 3"},
-                        {"choice": "Wake up 3"},
+                TextModule("The dreamer decided to continue dreaming. *again*"),
+                ImageModule("out/village.jpg"),
+                TextModule("The dreamer found himself in a peaceful village."),
+                PossibleChoicesModule(
+                    [
+                        ChoiceModule("Continue dreaming 3"),
+                        ChoiceModule("Wake up 3"),
                     ]
-                },
+                ),
             ]
         elif self.it == 3:
-            part = [
-                {"text": "The end"},
-            ]
+            part = [TextModule("The end")]
         else:
             return ERRORCODE_STORY_COMPLETE, None
 
