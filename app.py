@@ -112,7 +112,7 @@ def display_story():
 
 
 def start_dreaming():
-    st.session_state.story = AIStory(
+    st.session_state.story = CustomStory(
         title="A village",
         overview="A big village that you explore",
         need_illustration=False,
