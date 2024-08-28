@@ -97,12 +97,17 @@ def display_modules(modules, new_modules):
         display_module(module, new_modules)
 
 
+def display_story_title():
+    story = st.session_state.story
+    title_module = story.get_title_module()
+    if title_module is not None:
+        st.title(title_module.get_displayed_text())
+        st.session_state.is_title_displayed = True
+
+
 def display_story():
     story = st.session_state.story
-    title = story.get_title()
-    if title is not None:
-        st.title(story.get_title())
-        st.session_state.is_title_displayed = True
+    display_story_title()
 
     story_parts = story.get_story_parts()
     for story_part in story_parts:
@@ -113,9 +118,9 @@ def display_story():
 
 
 def start_dreaming():
-    st.session_state.story = AIStory(
-        title="A village",
-        overview="A big village that you explore",
+    st.session_state.story = CustomStory(
+        title="The story of the dreamer",
+        overview="A dreamer is dreaming",
         target_lang="FR",
         need_illustration=False,
         story_length=3,
@@ -154,10 +159,8 @@ else:
             error_code, generated_part = story.generate_next_part()
 
         if error_code == 0:
-            title = story.get_title()
-            if title is not None and not st.session_state.is_title_displayed:
-                st.title(story.get_title())
-                st.session_state.is_title_displayed = True
+            if not st.session_state.is_title_displayed:
+                display_story_title()
 
             display_modules(generated_part, True)
         elif not (error_code == 1 or error_code == 2):

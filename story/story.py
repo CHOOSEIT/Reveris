@@ -4,6 +4,7 @@ from story.story_modules import (
     ChoiceModule,
     PossibleChoicesModule,
     isTranslatable,
+    TextModule,
 )
 
 ERRORCODE_NO_ERROR = 0
@@ -47,7 +48,6 @@ class Story:
             story_length (int): the number of parts of the story
 
         """
-        self._title = title
         self._overview = overview
         self._story_max_length = story_length
         self._need_illustration = need_illustration
@@ -56,6 +56,22 @@ class Story:
         if target_lang is not None and target_lang.lower() == "en":
             target_lang = None
         self._target_lang = target_lang
+
+        self.set_title(title)
+
+    def set_title(self, title: str):
+        """
+        Set the title of the story.
+
+        Args:
+            title (str): the title of the story
+        """
+        if title is None:
+            self._title_module = None
+            return
+        _title_module = TextModule(title)
+        _title_module.set_translation(target_lang=self._target_lang)
+        self._title_module = _title_module
 
     def set_need_illustration(self, need_illustration: bool):
         """
@@ -85,14 +101,14 @@ class Story:
             return not last_module.has_selected_choice()
         return False
 
-    def get_title(self) -> str:
+    def get_title_module(self) -> TextModule:
         """
         Get the title of the story.
 
         Returns:
-            str: the title of the story
+            TextModule: the module that contains the title of the story
         """
-        return self._title
+        return self._title_module
 
     def get_prompt_story(self) -> str:
         """

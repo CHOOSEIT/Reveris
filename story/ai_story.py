@@ -40,14 +40,14 @@ class AIStory(Story):
         )
 
     def _generate_idea(self) -> bool:
-        if self._title is None or self._overview is None:
+        if self.get_title_module() is None or self._overview is None:
             print("Generating a new story idea...")
             title, overview = generate_title_overview_story()
             if title is None:
                 print("Failed to generate the story idea.")
                 return False
 
-            self._title = title
+            self.set_title(title)
             self._overview = overview
 
         return True
@@ -62,7 +62,7 @@ class AIStory(Story):
             print("Waiting for user input.")
             return ERRORCODE_WAITING_FOR_USER_INPUT, None
 
-        if self._title is None or self._overview is None:
+        if self.get_title_module() is None or self._overview is None:
             print("The story idea is missing (title and overview).")
             sucess = self._generate_idea()
             if not sucess:
