@@ -123,8 +123,6 @@ def display_story():
 
 def start_dreaming():
     st.session_state.story = CustomStory(
-        title="The story of the dreamer",
-        overview="A dreamer is dreaming",
         need_illustration=False,
         generate_speeches=False,
         story_length=3,

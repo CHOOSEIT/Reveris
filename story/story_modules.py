@@ -13,21 +13,21 @@ class StoryModules:
 
 class HasDisplayableText:
     def __init__(self):
-        self.displayed_text = None
+        self._displayed_text = None
 
     def get_text(self):
         raise NotImplementedError
 
     def is_displayed_text_set(self):
-        return self.displayed_text is not None
+        return self._displayed_text is not None
 
     def get_displayed_text(self):
-        if self.displayed_text is None:
+        if self._displayed_text is None:
             return self.get_text()
-        return self.displayed_text
+        return self._displayed_text
 
     def set_displayed_text(self, displayed_text):
-        self.displayed_text = displayed_text
+        self._displayed_text = displayed_text
 
 
 class isTranslatable:
