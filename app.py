@@ -12,6 +12,7 @@ from story.story_modules import (
     TextModule,
     ChoiceModule,
     PossibleChoicesModule,
+    canBeSpeechSynthesized,
 )
 
 ### Helper
@@ -59,6 +60,9 @@ def display_module(module, is_new):
     if isinstance_streamlit(module, TextModule):
         choice_text = module.get_displayed_text()
         displayed_text = stream_data(choice_text) if is_new else choice_text
+        if module.has_speech_generated():
+            st.audio(module.get_speech_file_path(), format="audio/mp3")
+
         st.write(displayed_text)
     elif isinstance_streamlit(module, ImageModule):
         st.image(module.get_image_path(), use_column_width=True)
@@ -121,8 +125,8 @@ def start_dreaming():
     st.session_state.story = CustomStory(
         title="The story of the dreamer",
         overview="A dreamer is dreaming",
-        target_lang="FR",
         need_illustration=False,
+        generate_speeches=False,
         story_length=3,
     )
     st.session_state.story_extension_requested = True

@@ -28,6 +28,7 @@ class AIStory(Story):
         title=None,
         overview=None,
         need_illustration=True,
+        generate_speeches=False,
         target_lang=None,
         story_length=3,
     ):
@@ -35,6 +36,7 @@ class AIStory(Story):
             title=title,
             overview=overview,
             need_illustration=need_illustration,
+            generate_speeches=generate_speeches,
             target_lang=target_lang,
             story_length=story_length,
         )

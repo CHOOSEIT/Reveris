@@ -15,6 +15,7 @@ class CustomStory(Story):
         title=None,
         overview=None,
         need_illustration=True,
+        generate_speeches=False,
         target_lang=None,
         story_length=3,
     ):
@@ -22,6 +23,7 @@ class CustomStory(Story):
             title=title,
             overview=overview,
             need_illustration=need_illustration,
+            generate_speeches=generate_speeches,
             target_lang=target_lang,
             story_length=story_length,
         )
@@ -35,11 +37,13 @@ class CustomStory(Story):
     def _generate_next_modules(self) -> Tuple[int, List[StoryModules]]:
         current_story_length = self._get_story_current_length()
         if current_story_length == 0:
+            textAndSpeech = TextModule(
+                "Once upon a time, in a world of dreams, there was a dreamer who was searching for the meaning of life."
+            )
+            textAndSpeech._speech_file_path = "out/tts_8D115s.mp3"
             part = [
                 ImageModule("out/img-5XkbU0ugs9hxI5G74gJz1pbG.png"),
-                TextModule(
-                    "Once upon a time, in a world of dreams, there was a dreamer who was searching for the meaning of life."
-                ),
+                textAndSpeech,
                 PossibleChoicesModule(
                     [
                         ChoiceModule("Continue dreaming"),
@@ -48,10 +52,14 @@ class CustomStory(Story):
                 ),
             ]
         elif current_story_length == 1:
+            textAndSpeech1 = TextModule("The dreamer decided to continue dreaming.")
+            textAndSpeech1._speech_file_path = "out/tts_tlOtNh.mp3"
+            textAndSpeech2 = TextModule("The dreamer decided to continue dreaming.")
+            textAndSpeech2._speech_file_path = "out/tts_qS5R6s.mp3"
             part = [
-                TextModule("The dreamer decided to continue dreaming."),
+                textAndSpeech1,
                 ImageModule("out/qemQ2o.jpg"),
-                TextModule("The dreamer found himself in a beautiful forest."),
+                textAndSpeech2,
                 PossibleChoicesModule(
                     [
                         ChoiceModule("Continue dreaming 2"),

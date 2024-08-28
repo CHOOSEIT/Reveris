@@ -1,6 +1,6 @@
 from typing import List
-
 from agents.translationAgent import query_translation
+from agents.voiceAgent import query_speech
 
 
 class StoryModules:
@@ -59,7 +59,28 @@ class HasDisplayableAndIsTranslatableText(HasDisplayableText, isTranslatable):
         self.set_displayed_text(translated_text)
 
 
-class TextModule(StoryModules, HasDisplayableAndIsTranslatableText):
+class canBeSpeechSynthesized:
+    def __init__(self):
+        self._speech_file_path = None
+        pass
+
+    def _get_speech_text(self):
+        raise NotImplementedError
+
+    def generate_speech(self):
+        filename = query_speech(self._get_speech_text())
+        self._speech_file_path = filename
+
+    def has_speech_generated(self):
+        return self._speech_file_path is not None
+
+    def get_speech_file_path(self):
+        return self._speech_file_path
+
+
+class TextModule(
+    StoryModules, HasDisplayableAndIsTranslatableText, canBeSpeechSynthesized
+):
     """
     Text module
 
@@ -77,6 +98,7 @@ class TextModule(StoryModules, HasDisplayableAndIsTranslatableText):
         """
         super(StoryModules, self).__init__()
         super(HasDisplayableAndIsTranslatableText, self).__init__()
+        super(canBeSpeechSynthesized, self).__init__()
         self.text = text
         self.set_displayed_text(displayed_text)
 
@@ -87,6 +109,10 @@ class TextModule(StoryModules, HasDisplayableAndIsTranslatableText):
     # Override from StoryModules
     def to_prompt_string(self):
         return self.text
+
+    # Override from canBeSpeechSynthesized
+    def _get_speech_text(self):
+        return self.get_displayed_text()
 
 
 class ImageModule(StoryModules):

@@ -5,6 +5,7 @@ from story.story_modules import (
     PossibleChoicesModule,
     isTranslatable,
     TextModule,
+    canBeSpeechSynthesized,
 )
 
 ERRORCODE_NO_ERROR = 0
@@ -34,6 +35,7 @@ class Story:
         title=None,
         overview=None,
         need_illustration=True,
+        generate_speeches=False,
         target_lang=None,
         story_length=3,
     ):
@@ -44,6 +46,7 @@ class Story:
             title (str): the title of the story
             overview (str): the overview of the story
             need_illustration (bool): True if the story needs an illustration, False otherwise
+            generate_speeches (bool): True if the story needs to generate speeches, False otherwise
             target_lang (str): the language of the story (None -> english, Example: "FR")
             story_length (int): the number of parts of the story
 
@@ -51,6 +54,7 @@ class Story:
         self._overview = overview
         self._story_max_length = story_length
         self._need_illustration = need_illustration
+        self._generate_speeches = generate_speeches
         self._story_parts = []
 
         if target_lang is not None and target_lang.lower() == "en":
@@ -220,6 +224,13 @@ class Story:
                 for module in modules:
                     if isinstance(module, isTranslatable):
                         module.set_translation(target_lang=self._target_lang)
+
+            # Generate the speeches
+            if self._generate_speeches:
+                print("Generating the speeches...")
+                for module in modules:
+                    if isinstance(module, canBeSpeechSynthesized):
+                        module.generate_speech()
 
             self._add_part_to_story(modules)
 

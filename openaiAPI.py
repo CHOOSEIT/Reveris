@@ -61,7 +61,7 @@ def query_openai(messages: list, temperature=0.0) -> str:
 ###############################################################################################
 
 
-def query_openai_tts(text: str, filename: str):
+def query_openai_tts(text: str):
     """
     Query the OpenAI API with the current conversation.
 
@@ -70,6 +70,12 @@ def query_openai_tts(text: str, filename: str):
     """
     openai_add_text_to_speech_usage(len(text))
 
+    filename = (
+        "out/tts_"
+        + "".join(random.choices(string.ascii_letters + string.digits, k=6))
+        + ".mp3"
+    )
+
     with _openai_client.audio.speech.with_streaming_response.create(
         model=_openai_model_tts,
         voice="nova",
@@ -77,6 +83,8 @@ def query_openai_tts(text: str, filename: str):
     ) as response:
         response.stream_to_file(filename)
     print("Text to speech saved to {}".format(filename))
+
+    return filename
 
 
 ###############################################################################################

@@ -1,16 +1,16 @@
 import os
 
 from openaiAPI import query_openai_tts
-from agents.utils.translateAgent import query_translation
 
 
-def query_readme(text: str, id: str):
+def query_speech(text: str):
     """
     Read the story.
+
+    Args:
+        text (str): the text to read
+
+    Returns:
+        str: the file path of the generated speech
     """
-    translated_text = query_translation("French", text)
-
-    filename = os.path.join("out", f"readme_{id}.mp3")
-    os.makedirs("out", exist_ok=True)
-
-    query_openai_tts(text=translated_text, filename=filename)
+    return query_openai_tts(text=text)
