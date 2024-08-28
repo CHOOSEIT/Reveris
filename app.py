@@ -68,7 +68,7 @@ def display_module(module, is_new):
         choices = [choice for choice in module.get_choices()]
 
         create_button = lambda choice: st.button(
-            choice.get_displayed_choice_text(),
+            choice.get_displayed_text(),
             use_container_width=True,
             on_click=enter_user_input,
             args=(choice,),

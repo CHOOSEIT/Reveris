@@ -9,7 +9,26 @@ class StoryModules:
         raise NotImplementedError
 
 
-class TextModule(StoryModules):
+class HasDisplayableText:
+    def __init__(self):
+        self.displayed_text = None
+
+    def get_text(self):
+        raise NotImplementedError
+
+    def is_displayed_text_set(self):
+        return self.displayed_text is not None
+
+    def get_displayed_text(self):
+        if self.displayed_text is None:
+            return self.get_text()
+        return self.displayed_text
+
+    def set_displayed_text(self, displayed_text):
+        self.displayed_text = displayed_text
+
+
+class TextModule(StoryModules, HasDisplayableText):
     """
     Text module
 
@@ -25,22 +44,18 @@ class TextModule(StoryModules):
         Args:
             text (str): the text to display
         """
+        super(StoryModules, self).__init__()
+        super(HasDisplayableText, self).__init__()
         self.text = text
-        self.displayed_text = displayed_text
+        self.set_displayed_text(displayed_text)
 
+    # Override from HasDisplayableText
     def get_text(self):
         return self.text
 
+    # Override from StoryModules
     def to_prompt_string(self):
         return self.text
-
-    def get_displayed_text(self):
-        if self.displayed_text is None:
-            return self.text
-        return self.displayed_text
-
-    def set_displayed_text(self, displayed_text):
-        self.displayed_text = displayed_text
 
 
 class ImageModule(StoryModules):
@@ -58,16 +73,18 @@ class ImageModule(StoryModules):
         Args:
             image_path (str): the path to the image
         """
+        super(StoryModules, self).__init__()
         self.image_path = image_path
 
     def get_image_path(self):
         return self.image_path
 
+    # Override from StoryModules
     def to_prompt_string(self):
         return ""
 
 
-class ChoiceModule(StoryModules):
+class ChoiceModule(StoryModules, HasDisplayableText):
     """
     Choice module
 
@@ -83,20 +100,16 @@ class ChoiceModule(StoryModules):
         Args:
             choice (str): the choice text
         """
+        super(StoryModules, self).__init__()
+        super(HasDisplayableText, self).__init__()
         self.choice_text = choice_text
-        self.displayed_choice_text = displayed_choice_text
+        self.set_displayed_text(displayed_choice_text)
 
-    def get_choice_text(self):
+    # Override from HasDisplayableText
+    def get_text(self):
         return self.choice_text
 
-    def get_displayed_choice_text(self):
-        if self.displayed_choice_text is None:
-            return self.choice_text
-        return self.displayed_choice_text
-
-    def set_displayed_choice_text(self, displayed_choice_text):
-        self.displayed_choice_text = displayed_choice_text
-
+    # Override from StoryModules
     def to_prompt_string(self):
         return "->" + self.choice_text
 
@@ -123,6 +136,7 @@ class PossibleChoicesModule(StoryModules):
         Args:
             choices (list[ChoiceModule]): the list of choices
         """
+        super(StoryModules, self).__init__()
         self.choices = choices
         self.selected = False
         self.selected_choice = None
