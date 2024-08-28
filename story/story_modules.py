@@ -13,11 +13,18 @@ class TextModule(StoryModules):
     """
     Text module
 
-    Args:
+    Parameters:
         text (str): the text to display
+        displayed_text (str): the text to display
     """
 
     def __init__(self, text: str, displayed_text: str = None):
+        """
+        Text module
+
+        Args:
+            text (str): the text to display
+        """
         self.text = text
         self.displayed_text = displayed_text
 
@@ -40,11 +47,17 @@ class ImageModule(StoryModules):
     """
     Image module
 
-    Args:
+    Parameters:
         image_path (str): the path to the image
     """
 
     def __init__(self, image_path: str):
+        """
+        Image module
+
+        Args:
+            image_path (str): the path to the image
+        """
         self.image_path = image_path
 
     def get_image_path(self):
@@ -58,11 +71,18 @@ class ChoiceModule(StoryModules):
     """
     Choice module
 
-    Args:
+    Parameters:
         choice (str): the choice text
+        displayed_choice_text (str): the displayed choice text
     """
 
     def __init__(self, choice_text: str, displayed_choice_text: str = None):
+        """
+        Choice module
+
+        Args:
+            choice (str): the choice text
+        """
         self.choice_text = choice_text
         self.displayed_choice_text = displayed_choice_text
 
