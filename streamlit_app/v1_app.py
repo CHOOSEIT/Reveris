@@ -120,6 +120,7 @@ def start_dreaming():
 
 
 def display():
+    st.set_page_config(layout="centered")
     display_story()
     if st.session_state.story_extension_requested:
         story = st.session_state.story

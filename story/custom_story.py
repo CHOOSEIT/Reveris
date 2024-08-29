@@ -61,6 +61,8 @@ class CustomStory(Story):
                 textAndSpeech1,
                 ImageModule("out/qemQ2o.jpg"),
                 textAndSpeech2,
+                ImageModule("out/lb33UI.jpg"),
+                TextModule("This is a market"),
                 PossibleChoicesModule(
                     [
                         ChoiceModule("Continue dreaming 2"),
