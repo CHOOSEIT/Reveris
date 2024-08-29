@@ -5,10 +5,14 @@ from story.custom_story import CustomStory
 
 
 def get_display_app(display_version):
+    display_app = None
     if display_version == 1:
-        return v1_app
-    else:
-        return None
+        display_app = v1_app
+
+    # Streamlit does not seems to like state initialization in multiple files.
+    if display_app is not None:
+        display_app.refresh_initial_state()
+    return display_app
 
 
 ### Variable initialization

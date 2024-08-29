@@ -105,13 +105,16 @@ def enter_user_input(choice: ChoiceModule):
     continue_dreaming()
 
 
-if "story_extension_requested" not in st.session_state:
-    st.session_state.story_extension_requested = False
-if "is_title_displayed" not in st.session_state:
-    st.session_state.is_title_displayed = False
-
-
 # Main
+
+
+def refresh_initial_state():
+    if "story_extension_requested" not in st.session_state:
+        st.session_state.story_extension_requested = False
+    if "is_title_displayed" not in st.session_state:
+        st.session_state.is_title_displayed = False
+
+
 def start_dreaming():
     st.session_state.story_extension_requested = True
 
