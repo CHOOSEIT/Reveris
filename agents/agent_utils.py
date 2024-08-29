@@ -1,6 +1,7 @@
 import json
 
 from openaiAPI import query_openai
+from typing import Tuple, List
 
 AGENT_INTRODUCTION = """You are a story writer. Your goal create an engaging story idea that will be remembered by the user.
 The story is lived by the user, so it should be in the user's perspective but told as the second person.
@@ -28,7 +29,7 @@ def extract_json_answer(answer: str) -> dict:
 
 
 def query_llm_with_feedback(
-    message_history: list,
+    message_history: List[dict],
     feedback_function: callable,
     loop_times=3,
     temperature=0,
@@ -40,6 +41,8 @@ def query_llm_with_feedback(
         message_history (list): the message history
         feedback_function (callable([str, bool] -> [bool, object])): the feedback function
             -> function that accepts a string and a boolean (is final feedback) and return a boolean and an object. If the boolean is False, the object is the error message else it is the final answer
+        loop_times (int): the number of times to loop
+        temperature (int): the temperature to use for the query
 
     Returns:
         str: the answer or None if the query failed
@@ -56,3 +59,60 @@ def query_llm_with_feedback(
         message_history.append({"role": "system", "content": output})
 
     return None
+
+
+def query_llm_with_feedback_json(
+    message_history: List[dict],
+    list_json_parent_key: List[str],
+    json_format: str,
+    feedback_function: callable = None,
+    loop_times=3,
+    temperature=0,
+):
+    """
+    Query the LLM until the feedback function returns a success or the loop times is reached.
+
+    Args:
+        message_history (list): the message history
+        list_json_parent_key (list): the list of keys that should be present in the JSON answer
+        json_format (str): the JSON format that the answer should respect
+        feedback_function (callable([dict, bool] -> [bool, object])): the feedback function
+            -> function that accepts a json dictionary and a boolean (is final feedback) and return a boolean and an object. If the boolean is False, the object is the error message else it is the final answer
+        loop_times (int): the number of times to loop
+        temperature (int): the temperature to use for the query
+
+    Returns:
+        dict: the answer or None if the query failed
+
+    """
+
+    def json_feedback(answer: str, is_final_feedback: bool) -> Tuple[bool, object]:
+        json_answer = extract_json_answer(answer)
+        if json_answer is None:
+            return (
+                False,
+                "Failed to parse the answer. Please verify that your answer is in the right JSON format: {}".format(
+                    json_format
+                ),
+            )
+
+        if list_json_parent_key is not None:
+            for key in list_json_parent_key:
+                if key not in json_answer:
+                    return (
+                        False,
+                        "The JSON answer is missing some keys. Please verify that your answer is in the right JSON format: {}".format(
+                            json_format
+                        ),
+                    )
+
+        if feedback_function is not None:
+            return feedback_function(json_answer, is_final_feedback)
+        return True, json_answer
+
+    return query_llm_with_feedback(
+        message_history=message_history,
+        feedback_function=json_feedback,
+        loop_times=loop_times,
+        temperature=temperature,
+    )

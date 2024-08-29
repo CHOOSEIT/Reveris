@@ -1,13 +1,10 @@
 import json
 import os
 
-from openaiAPI import query_openai
 from agents.agent_utils import (
     AGENT_INTRODUCTION,
-    extract_json_answer,
-    query_llm_with_feedback,
+    query_llm_with_feedback_json,
 )
-from typing import Tuple
 
 
 def query_expand_story_idea(story_idea) -> dict:
@@ -67,35 +64,19 @@ Make sure to have your answer in the JSON format.
         {"role": "system", "content": prompt},
     ]
 
-    def feedback_function(answer: str, is_final_feedback: bool) -> Tuple[bool, object]:
-        json_answer = extract_json_answer(answer)
-        if json_answer is None:
-            return (
-                False,
-                "Failed to parse the answer. Please verify that your answer is in the right JSON format: {}".format(
-                    JSON_FORMAT
-                ),
-            )
-
-        if (
-            "themes" not in json_answer
-            or "places" not in json_answer
-            or "characters" not in json_answer
-            or "objects" not in json_answer
-            or "goal" not in json_answer
-            or "title" not in json_answer
-            or "overview" not in json_answer
-        ):
-            return (
-                False,
-                "The JSON answer is missing some keys. Please verify that your answer is in the right JSON format: {}".format(
-                    JSON_FORMAT
-                ),
-            )
-
-        return True, json_answer
-
-    return query_llm_with_feedback(messages, feedback_function)
+    return query_llm_with_feedback_json(
+        message_history=messages,
+        list_json_parent_key=[
+            "themes",
+            "places",
+            "characters",
+            "objects",
+            "goal",
+            "title",
+            "overview",
+        ],
+        json_format=JSON_FORMAT,
+    )
 
 
 PREVIOUS_IDEAS_FILE_PATH = "out/previous_ideas.json"
@@ -150,27 +131,11 @@ Make sure to have your answer in the JSON format.
         {"role": "system", "content": prompt},
     ]
 
-    def feedback_function(answer: str, is_final_feedback: bool) -> Tuple[bool, object]:
-        json_answer = extract_json_answer(answer)
-        if json_answer is None:
-            return (
-                False,
-                "Failed to parse the answer. Please verify that your answer is in the right JSON format: {}".format(
-                    JSON_FORMAT
-                ),
-            )
-
-        if "idea" not in json_answer:
-            return (
-                False,
-                "The JSON answer is missing some keys. Please verify that your answer is in the right JSON format: {}".format(
-                    JSON_FORMAT
-                ),
-            )
-
-        return True, json_answer
-
-    answer = query_llm_with_feedback(messages, feedback_function)
+    answer = query_llm_with_feedback_json(
+        message_history=messages,
+        list_json_parent_key=["idea"],
+        json_format=JSON_FORMAT,
+    )
     if answer is None:
         return None
 

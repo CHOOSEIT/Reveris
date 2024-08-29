@@ -2,6 +2,7 @@ import streamlit as st
 import streamlit_app.v1_app as v1_app
 
 from story.custom_story import CustomStory
+from story.ai_story import AIStory
 
 
 def get_display_app(display_version):

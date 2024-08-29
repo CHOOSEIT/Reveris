@@ -1,7 +1,6 @@
 from agents.agent_utils import (
     AGENT_INTRODUCTION,
-    extract_json_answer,
-    query_llm_with_feedback,
+    query_llm_with_feedback_json,
 )
 from typing import Tuple
 
@@ -49,28 +48,11 @@ Make sure to have your answer in the JSON format.
     messages = [
         {"role": "system", "content": prompt},
     ]
-
-    def feedback_function(answer: str, is_final_feedback: bool) -> Tuple[bool, object]:
-        json_answer = extract_json_answer(answer)
-        if json_answer is None:
-            return (
-                False,
-                "Failed to parse the answer. Please verify that your answer is in the right JSON format: {}".format(
-                    JSON_FORMAT
-                ),
-            )
-
-        if "story_content" not in json_answer:
-            return (
-                False,
-                "The JSON answer is missing some keys. Please verify that your answer is in the right JSON format: {}".format(
-                    JSON_FORMAT
-                ),
-            )
-
-        return True, json_answer
-
-    answer = query_llm_with_feedback(messages, feedback_function)
+    answer = query_llm_with_feedback_json(
+        message_history=messages,
+        list_json_parent_key=["story_content"],
+        json_format=JSON_FORMAT,
+    )
     if answer is None:
         return None
     return answer["story_content"]
@@ -146,24 +128,9 @@ Make sure to have your answer in the JSON format.
         {"role": "system", "content": prompt},
     ]
 
-    def feedback_function(answer: str, is_final_feedback: bool) -> Tuple[bool, object]:
-        json_answer = extract_json_answer(answer)
-        if json_answer is None:
-            return (
-                False,
-                "Failed to parse the answer. Please verify that your answer is in the right JSON format: {}".format(
-                    JSON_FORMAT
-                ),
-            )
-
-        if "story_content" not in json_answer or "choices" not in json_answer:
-            return (
-                False,
-                "The JSON answer is missing some keys. Please verify that your answer is in the right JSON format: {}".format(
-                    JSON_FORMAT
-                ),
-            )
-
+    def feedback_json_function(
+        json_answer: dict, is_final_feedback: bool
+    ) -> Tuple[bool, object]:
         if len(json_answer["choices"]) < 2:
             return (
                 False,
@@ -183,7 +150,13 @@ Make sure to have your answer in the JSON format.
 
         return True, json_answer
 
-    answer = query_llm_with_feedback(messages, feedback_function)
+    answer = query_llm_with_feedback_json(
+        message_history=messages,
+        list_json_parent_key=["story_content", "choices"],
+        json_format=JSON_FORMAT,
+        feedback_function=feedback_json_function,
+    )
+
     if answer is None:
         return None
 
@@ -236,27 +209,11 @@ Make sure to have your answer in the JSON format.
         {"role": "system", "content": prompt},
     ]
 
-    def feedback_function(answer: str, is_final_feedback: bool) -> Tuple[bool, object]:
-        json_answer = extract_json_answer(answer)
-        if json_answer is None:
-            return (
-                False,
-                "Failed to parse the answer. Please verify that your answer is in the right JSON format: {}".format(
-                    JSON_FORMAT
-                ),
-            )
-
-        if "story_end" not in json_answer:
-            return (
-                False,
-                "The JSON answer is missing some keys. Please verify that your answer is in the right JSON format: {}".format(
-                    JSON_FORMAT
-                ),
-            )
-
-        return True, json_answer
-
-    answer = query_llm_with_feedback(messages, feedback_function)
+    answer = query_llm_with_feedback_json(
+        message_history=messages,
+        list_json_parent_key=["story_end"],
+        json_format=JSON_FORMAT,
+    )
     if answer is None:
         return None
     return answer["story_end"]

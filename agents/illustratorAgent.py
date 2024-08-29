@@ -1,8 +1,7 @@
 import re
 
 from typing import Tuple, List
-from agents.ideaAgent import extract_json_answer
-from agents.agent_utils import query_llm_with_feedback
+from agents.agent_utils import query_llm_with_feedback_json
 from openaiAPI import query_openai_image_generation
 
 
@@ -147,24 +146,9 @@ Your answer must contain a list of illustrations in the following format:
         {"role": "system", "content": prompt},
     ]
 
-    def feedback_function(answer: str, is_final_feedback: bool) -> Tuple[bool, object]:
-        json_answer = extract_json_answer(answer)
-        if json_answer is None:
-            return (
-                False,
-                "Failed to parse the answer. Please verify that your answer is in the right JSON format: {}".format(
-                    JSON_FORMAT
-                ),
-            )
-
-        if "illustrations" not in json_answer:
-            return (
-                False,
-                "The JSON answer is missing the 'illustrations' key. Please verify that your answer is in the right JSON format: {}".format(
-                    JSON_FORMAT
-                ),
-            )
-
+    def feedback_json_function(
+        json_answer: dict, is_final_feedback: bool
+    ) -> Tuple[bool, object]:
         # Get the valid illustrations and the error message
         illustrations = json_answer["illustrations"]
         valid_matches, error_message = _get_valid_illustrations(
@@ -183,7 +167,12 @@ Your answer must contain a list of illustrations in the following format:
 
         return True, valid_matches
 
-    return query_llm_with_feedback(messages, feedback_function)
+    return query_llm_with_feedback_json(
+        message_history=messages,
+        list_json_parent_key=["illustrations"],
+        json_format=JSON_FORMAT,
+        feedback_function=feedback_json_function,
+    )
 
 
 def query_illustration(text: str, description: str, text_subpart: str):
@@ -235,27 +224,11 @@ Provide the image description in the following format:
         {"role": "system", "content": prompt},
     ]
 
-    def feedback_function(answer: str, is_final_feedback: bool) -> Tuple[bool, object]:
-        json_answer = extract_json_answer(answer)
-        if json_answer is None:
-            return (
-                False,
-                "Failed to parse the answer. Please verify that your answer is in the right JSON format: {}".format(
-                    JSON_FORMAT
-                ),
-            )
-
-        if "image_description" not in json_answer:
-            return (
-                False,
-                "The JSON answer is missing the 'image_description' key. Please verify that your answer is in the right JSON format: {}".format(
-                    JSON_FORMAT
-                ),
-            )
-
-        return True, json_answer
-
-    answer = query_llm_with_feedback(messages, feedback_function)
+    answer = query_llm_with_feedback_json(
+        message_history=messages,
+        list_json_parent_key=["image_description"],
+        json_format=JSON_FORMAT,
+    )
     if answer is None:
         return None
     image_description = answer["image_description"]
