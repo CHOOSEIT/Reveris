@@ -12,16 +12,14 @@ from story.story_modules import (
 class CustomStory(Story):
     def __init__(
         self,
-        title=None,
-        overview=None,
         need_illustration=True,
         generate_speeches=False,
         target_lang=None,
         story_length=3,
     ):
         super().__init__(
-            title=title,
-            overview=overview,
+            title=None,
+            overview=None,
             need_illustration=need_illustration,
             generate_speeches=generate_speeches,
             target_lang=target_lang,
@@ -29,12 +27,15 @@ class CustomStory(Story):
         )
 
     def _generate_idea(self) -> bool:
-        self.title = "The story of a dreamer"
+        self.set_title("The story of a dreamer")
         self.overview = "A dreamer who is searching for the meaning of life."
 
         return True
 
     def _generate_next_modules(self) -> Tuple[int, List[StoryModules]]:
+        if self.get_title_module() is None or self._overview is None:
+            self._generate_idea()
+
         current_story_length = self._get_story_current_length()
         if current_story_length == 0:
             textAndSpeech = TextModule(
