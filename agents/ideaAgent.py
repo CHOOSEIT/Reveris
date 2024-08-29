@@ -1,4 +1,5 @@
 import json
+import os
 
 from openaiAPI import query_openai
 from agents.agent_utils import (
@@ -97,7 +98,7 @@ Make sure to have your answer in the JSON format.
     return query_llm_with_feedback(messages, feedback_function)
 
 
-PREVIOUS_IDEAS_FILE = "previous_ideas.json"
+PREVIOUS_IDEAS_FILE_PATH = "out/previous_ideas.json"
 
 
 def query_idea() -> dict:
@@ -107,13 +108,21 @@ def query_idea() -> dict:
     Returns:
         str: The story idea
     """
+    base_path = os.path.dirname(PREVIOUS_IDEAS_FILE_PATH)
+    os.makedirs(base_path, exist_ok=True)
     try:
-        with open(PREVIOUS_IDEAS_FILE, "r") as f:
+        with open(PREVIOUS_IDEAS_FILE_PATH, "r") as f:
             ideas = json.load(f)
     except:
         ideas = []
 
     ideas = ideas[-40:]
+
+    JSON_FORMAT = """
+{
+    "idea": "The story idea",
+}
+"""
 
     prompt = """
 Generate a 3 lines long story idea. The story should be seen as a first person story that I will be living and play as a story game.
@@ -128,25 +137,48 @@ The story that you create should have a real story and structure with arcs and a
 The story should have clear different paths and ending that each of them can be good or bad depending on the player decisions.
 
 You answer must contains a single JSON object in the following format:
-{
-    "idea": "The story idea",
-}
+[FORMAT]
 Make sure to have your answer in the JSON format.
 
     """.replace(
-        "[STORIES]", "\n".join(ideas)
+        "[STORIES]", "\n".join(ideas) if len(ideas) > 0 else "None"
+    ).replace(
+        "[FORMAT]", JSON_FORMAT
     )
 
     messages = [
         {"role": "system", "content": prompt},
     ]
 
-    answer = query_openai(messages)
-    idea = extract_json_answer(answer)["idea"]
+    def feedback_function(answer: str, is_final_feedback: bool) -> Tuple[bool, object]:
+        json_answer = extract_json_answer(answer)
+        if json_answer is None:
+            return (
+                False,
+                "Failed to parse the answer. Please verify that your answer is in the right JSON format: {}".format(
+                    JSON_FORMAT
+                ),
+            )
+
+        if "idea" not in json_answer:
+            return (
+                False,
+                "The JSON answer is missing some keys. Please verify that your answer is in the right JSON format: {}".format(
+                    JSON_FORMAT
+                ),
+            )
+
+        return True, json_answer
+
+    answer = query_llm_with_feedback(messages, feedback_function)
+    if answer is None:
+        return None
+
+    idea = answer["idea"]
 
     ideas.append(idea)
 
-    with open(PREVIOUS_IDEAS_FILE, "w") as f:
+    with open(PREVIOUS_IDEAS_FILE_PATH, "w") as f:
         json.dump(ideas, f)
 
     return idea
@@ -161,6 +193,8 @@ def generate_title_overview_story():
         str: The overview of the story or None if the story could not be generated
     """
     story_idea = query_idea()
+    if story_idea is None:
+        return None, None
 
     expanded_story_id = query_expand_story_idea(story_idea=story_idea)
     if expanded_story_id is None:
