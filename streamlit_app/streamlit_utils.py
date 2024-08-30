@@ -8,7 +8,7 @@ def stream_data(text):
         time.sleep(0.05)
 
 
-def isinstance_streamlit(module: StoryModules, module_type: type):
+def istype_module_streamlit(module: StoryModules, module_type: type):
     """
     Check if a module is of a certain type.
 

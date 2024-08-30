@@ -10,7 +10,7 @@ from story.story_modules import (
     PossibleChoicesModule,
 )
 from streamlit_extras.stylable_container import stylable_container
-from streamlit_app.streamlit_utils import stream_data, isinstance_streamlit
+from streamlit_app.streamlit_utils import stream_data, istype_module_streamlit
 from typing import List
 from pygame import mixer
 from openaiAPI import openai_show_usage
@@ -49,14 +49,14 @@ def display_module(module, is_new):
         is_new (bool): whether the module is new
     """
     unique_key = "".join(random.choices(string.ascii_letters + string.digits, k=6))
-    if isinstance_streamlit(module, TextModule):
+    if istype_module_streamlit(module, TextModule):
         choice_text = module.get_displayed_text()
         displayed_text = stream_data(choice_text) if is_new else choice_text
 
         st.write(displayed_text)
-    elif isinstance_streamlit(module, ImageModule):
+    elif istype_module_streamlit(module, ImageModule):
         st.image(module.get_image_path(), use_column_width=True)
-    elif isinstance_streamlit(module, PossibleChoicesModule):
+    elif istype_module_streamlit(module, PossibleChoicesModule):
         disabled = module.has_selected_choice()
         made_choice = module.get_selected_choice()
         choices = [choice for choice in module.get_choices()]
@@ -106,7 +106,7 @@ def _split_pages(modules) -> List[dict]:
     started_page = []
     found_image = None
     for module in modules:
-        if isinstance_streamlit(module, ImageModule):
+        if istype_module_streamlit(module, ImageModule):
             if found_image is not None:
                 page_list.append(
                     {"image": found_image, "modules": started_page, "displayed": False}
@@ -246,7 +246,7 @@ def play_audio():
         while index < num_modules and st.session_state.story_audio_requested:
             module = page["modules"][index]
             if (
-                isinstance_streamlit(module, TextModule)
+                istype_module_streamlit(module, TextModule)
                 and module.has_speech_generated()
             ):
                 mixer.music.load(module.get_speech_file_path())
