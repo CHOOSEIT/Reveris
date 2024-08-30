@@ -3,6 +3,7 @@ import streamlit_app.v1_app as v1_app
 import streamlit_app.v2_app as v2_app
 import os
 import json
+import time
 
 
 from story.story_type.custom_story import CustomStory
@@ -28,9 +29,13 @@ def get_display_app(display_version):
 
 if "story" not in st.session_state:
     st.session_state.story = None
+if "previous_placeholder" not in st.session_state:
+    st.session_state.previous_placeholder = None
 
 
-def start_dreaming(_story=None):
+def start_dreaming(
+    _story=None,
+):
     if _story is None:
         _story = AIStory(
             need_illustration=True,
@@ -42,6 +47,11 @@ def start_dreaming(_story=None):
 
     display_app = get_display_app(DISPLAY_VERSION)
     display_app.start_dreaming()
+
+
+def load_story(story_path):
+    story = AIStory.load_story(story_path)
+    start_dreaming(story)
 
 
 def get_story_infos():
@@ -88,31 +98,36 @@ def get_story_infos():
     return stories_info
 
 
-def load_story(story_path):
-    story = AIStory.load_story(story_path)
-    start_dreaming(story)
-    return story
-
-
 ### Main
 DISPLAY_VERSION = 2
 
-if st.session_state.story is None:
+if st.session_state.story is not None:
+    get_display_app(DISPLAY_VERSION).set_display_parameters()
+else:
     st.set_page_config(layout="centered")
-    st.title("💭 Reveries 💭")
-    st.button(
-        r"$\Large\text{🌈 Start dreaming 🌈}$",
-        on_click=start_dreaming,
-        args=(None,),
-        use_container_width=True,
-    )
 
-    stories_history = st.empty()
-    with stories_history.container():
+# This is a workaround to clear the previous page
+# (this prevent the previous page to be displayed as shadow)
+if st.session_state.previous_placeholder is not None:
+    st.session_state.previous_placeholder.empty()
+    time.sleep(0.1)
+
+st.session_state.previous_placeholder = st.empty()
+with st.session_state.previous_placeholder.container():
+
+    if st.session_state.story is None:
+        st.title("💭 Reveries 💭")
+        st.button(
+            r"$\Large\text{🌈 Start dreaming 🌈}$",
+            on_click=start_dreaming,
+            args=(None,),
+            use_container_width=True,
+        )
+
         st.markdown(
             f"""
-    <h4>📜 Stories history 📜</h4>
-    """,
+        <h4>📜 Stories history 📜</h4>
+        """,
             unsafe_allow_html=True,
         )
         stories_info = get_story_infos()
@@ -124,13 +139,14 @@ if st.session_state.story is None:
 
             title_key = title.replace(" ", "_")
             latex_button = r"""$
-                \Large\text{[TITLE]}
-                $
-                      """.replace(
+                    \Large\text{[TITLE]}
+                    $
+                        """.replace(
                 r"\n", ""
             ).replace(
                 "[TITLE]", title
             )
+
             st.button(
                 label=latex_button,
                 on_click=load_story,
@@ -139,7 +155,6 @@ if st.session_state.story is None:
                 use_container_width=True,
             )
 
-
-else:
-    display_app = get_display_app(DISPLAY_VERSION)
-    display_app.display()
+    else:
+        display_app = get_display_app(DISPLAY_VERSION)
+        display_app.display()

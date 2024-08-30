@@ -125,14 +125,6 @@ def _split_pages(modules) -> List[dict]:
     return page_list
 
 
-# Forcing streamlit to empty the placeholder
-def _clear_placeholder(empty_placeholder, num_lines):
-    with empty_placeholder.container():
-        for _ in range(num_lines):
-            st.write("")
-        empty_placeholder.empty()
-
-
 def _display_page(page, is_new):
     display_story_title()
 
@@ -141,7 +133,8 @@ def _display_page(page, is_new):
         with b1:
             st.button(
                 "⬅️",
-                on_click=previous_page,
+                on_click=change_page,
+                args=(-1,),
                 disabled=st.session_state.displayed_page_index == 0
                 or st.session_state.story_audio_requested,
                 use_container_width=True,
@@ -162,7 +155,8 @@ def _display_page(page, is_new):
         with b3:
             st.button(
                 "➡️",
-                on_click=next_page,
+                on_click=change_page,
+                args=(+1,),
                 disabled=st.session_state.displayed_page_index
                 == len(st.session_state.pages) - 1
                 or st.session_state.story_audio_requested,
@@ -174,27 +168,18 @@ def _display_page(page, is_new):
     if page["image"] is None:
         _, col, _ = st.columns([0.25, 0.5, 0.25], gap="medium")
         with col:
-            placeholder = st.empty()
-            _clear_placeholder(placeholder, number_of_modules * 4)
-            with placeholder.container():
-                display_modules(page["modules"], is_new)
-                display_buttons()
+            display_modules(page["modules"], is_new)
+            display_buttons()
         pass
     else:
         col1, col2 = st.columns([0.7, 0.3], gap="medium")
 
         with col1:
-            placeholder = st.empty()
-            _clear_placeholder(placeholder, 4)
-            with placeholder.container():
-                st.image(page["image"].get_image_path(), use_column_width=True)
-                display_buttons()
+            st.image(page["image"].get_image_path(), use_column_width=True)
+            display_buttons()
 
         with col2:
-            placeholder = st.empty()
-            _clear_placeholder(placeholder, number_of_modules * 4)
-            with placeholder.container():
-                display_modules(page["modules"], is_new)
+            display_modules(page["modules"], is_new)
 
 
 def display_page():
@@ -204,12 +189,8 @@ def display_page():
     st.session_state.pages[page_number]["displayed"] = True
 
 
-def previous_page():
-    st.session_state.displayed_page_index -= 1
-
-
-def next_page():
-    st.session_state.displayed_page_index += 1
+def change_page(delta):
+    st.session_state.displayed_page_index += delta
 
 
 def start_audio():
@@ -263,6 +244,10 @@ def play_audio():
 # Main
 
 
+def set_display_parameters():
+    st.set_page_config(layout="wide")
+
+
 def refresh_initial_state():
     mixer.init()
     if "story_extension_requested" not in st.session_state:
@@ -285,11 +270,6 @@ def start_dreaming():
 
 
 def display():
-    st.set_page_config(layout="wide")
-
-    placeholder = st.empty()
-    _clear_placeholder(placeholder, 10)
-
     if st.session_state.story_extension_requested:
         story = st.session_state.story
         with st.spinner("Dreaming..."):
@@ -317,7 +297,6 @@ def display():
                 "displayed"
             ] = True
 
-    with placeholder.container():
-        display_page()
+    display_page()
 
     play_audio()

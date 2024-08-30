@@ -108,6 +108,10 @@ def enter_user_input(choice: ChoiceModule):
 # Main
 
 
+def set_display_parameters():
+    st.set_page_config(layout="centered")
+
+
 def refresh_initial_state():
     if "story_extension_requested" not in st.session_state:
         st.session_state.story_extension_requested = False
@@ -122,7 +126,6 @@ def start_dreaming():
 
 
 def display():
-    st.set_page_config(layout="centered")
     display_story()
     if st.session_state.story_extension_requested:
         story = st.session_state.story
