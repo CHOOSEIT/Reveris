@@ -286,6 +286,7 @@ class Story:
             "need_illustration": self._need_illustration,
             "generate_speeches": self._generate_speeches,
             "target_lang": self._target_lang,
+            "story_length": self._story_max_length,
             "story_parts": [part.to_dict() for part in self._story_parts],
         }
         return story_dict

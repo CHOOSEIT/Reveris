@@ -205,6 +205,7 @@ class AIStory(Story):
                 need_illustration=story_dict["need_illustration"],
                 generate_speeches=story_dict["generate_speeches"],
                 target_lang=story_dict["target_lang"],
+                story_length=story_dict["story_length"],
                 id=story_dict["id"],
             )
             story._title_module = TextModule.from_dict(story_dict["title"])
