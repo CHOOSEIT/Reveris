@@ -42,9 +42,9 @@ class CustomStory(Story):
             textAndSpeech = TextModule(
                 "Once upon a time, in a world of dreams, there was a dreamer who was searching for the meaning of life."
             )
-            textAndSpeech._speech_file_path = "out/tts_8D115s.mp3"
+            textAndSpeech._speech_file_path = "demo_story/tts_8D115s.mp3"
             part = [
-                ImageModule("out/img-5XkbU0ugs9hxI5G74gJz1pbG.png"),
+                ImageModule("demo_story/img-5XkbU0ugs9hxI5G74gJz1pbG.png"),
                 textAndSpeech,
                 PossibleChoicesModule(
                     [
@@ -55,13 +55,13 @@ class CustomStory(Story):
             ]
         elif current_story_length == 1:
             textAndSpeech1 = TextModule("The dreamer decided to continue dreaming.")
-            textAndSpeech1._speech_file_path = "out/tts_tlOtNh.mp3"
+            textAndSpeech1._speech_file_path = "demo_story/tts_tlOtNh.mp3"
             textAndSpeech2 = TextModule("The dreamer decided to continue dreaming.")
-            textAndSpeech2._speech_file_path = "out/tts_qS5R6s.mp3"
+            textAndSpeech2._speech_file_path = "demo_story/tts_qS5R6s.mp3"
             part = [
                 textAndSpeech1,
-                ImageModule("out/qemQ2o.jpg"),
-                ImageModule("out/lb33UI.jpg"),
+                ImageModule("demo_story/qemQ2o.jpg"),
+                ImageModule("demo_story/lb33UI.jpg"),
                 TextModule("This is a market"),
                 textAndSpeech2,
                 PossibleChoicesModule(
@@ -73,7 +73,7 @@ class CustomStory(Story):
             ]
         elif current_story_length == 2:
             part = [
-                ImageModule("out/village.jpg"),
+                ImageModule("demo_story/village.jpg"),
                 TextModule("The dreamer found himself in a peaceful village."),
                 PossibleChoicesModule(
                     [

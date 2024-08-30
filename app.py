@@ -27,11 +27,7 @@ if "story" not in st.session_state:
 
 def start_dreaming(display_version):
 
-    _story = AIStory(
-        need_illustration=True,
-        generate_speeches=True,
-        story_length=3,
-    )
+    _story = CustomStory()
 
     st.session_state.story = _story
 
