@@ -61,17 +61,18 @@ def query_openai(messages: list, temperature=0.0) -> str:
 ###############################################################################################
 
 
-def query_openai_tts(text: str):
+def query_openai_tts(text: str, working_folder: str = "out") -> str:
     """
     Query the OpenAI API with the current conversation.
 
     Args:
         text (str): The text to convert to speech
+        working_folder (str): The working folder to save the speech
     """
     openai_add_text_to_speech_usage(len(text))
 
     filename = (
-        "out/tts_"
+        f"{working_folder}/tts_"
         + "".join(random.choices(string.ascii_letters + string.digits, k=6))
         + ".mp3"
     )
@@ -92,13 +93,16 @@ def query_openai_tts(text: str):
 ###############################################################################################
 
 
-def query_openai_image_generation(prompt: str, style="vivid") -> str:
+def query_openai_image_generation(
+    prompt: str, style="vivid", working_folder: str = "out"
+) -> str:
     """
     Generate an image using the OpenAI API.
 
     Args:
         prompt (str): The prompt to generate the image
         style (str): The style of the image (standard or vivid)
+        working_folder (str): The working folder to save the image
 
     Returns:
         str: file path of the generated image
@@ -118,7 +122,7 @@ def query_openai_image_generation(prompt: str, style="vivid") -> str:
     image_obj = Image.open(io.BytesIO(base64.b64decode(image_obj)))
 
     filename = (
-        "out/"
+        f"{working_folder}/"
         + "".join(random.choices(string.ascii_letters + string.digits, k=6))
         + ".jpg"
     )

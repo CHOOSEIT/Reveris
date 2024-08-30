@@ -2,8 +2,8 @@ import streamlit as st
 import streamlit_app.v1_app as v1_app
 import streamlit_app.v2_app as v2_app
 
-from story.custom_story import CustomStory
-from story.ai_story import AIStory
+from story.story_type.custom_story import CustomStory
+from story.story_type.ai_story import AIStory
 
 
 def get_display_app(display_version):
@@ -26,11 +26,15 @@ if "story" not in st.session_state:
 
 
 def start_dreaming(display_version):
-    st.session_state.story = CustomStory(
-        need_illustration=False,
-        generate_speeches=False,
+
+    _story = AIStory(
+        need_illustration=True,
+        generate_speeches=True,
         story_length=3,
     )
+
+    st.session_state.story = _story
+
     display_app = get_display_app(display_version)
     display_app.start_dreaming()
 

@@ -80,7 +80,7 @@ def display_story():
     story = st.session_state.story
     display_story_title()
 
-    story_parts = story.get_story_parts()
+    story_parts = st.session_state.story_parts
     for story_part in story_parts:
         display_modules(story_part, False)
 
@@ -113,6 +113,8 @@ def refresh_initial_state():
         st.session_state.story_extension_requested = False
     if "is_title_displayed" not in st.session_state:
         st.session_state.is_title_displayed = False
+    if "story_parts" not in st.session_state:
+        st.session_state.story_parts = []
 
 
 def start_dreaming():
@@ -125,13 +127,19 @@ def display():
     if st.session_state.story_extension_requested:
         story = st.session_state.story
         with st.spinner("Dreaming..."):
-            error_code, generated_part = story.generate_next_part()
+            error_code, generated_parts = story.generate_next_parts()
 
         if error_code == 0:
             if not st.session_state.is_title_displayed:
                 display_story_title()
 
-            display_modules(generated_part, True)
+            generated_modules = []
+            for generated_part in generated_parts:
+                generated_modules.extend(generated_part.get_modules())
+
+            display_modules(generated_modules, True)
+
+            st.session_state.story_parts.extend(generated_parts)
         elif not (error_code == 1 or error_code == 2):
             st.error("An error occurred while generating the story.")
             st.error("Error code: " + str(error_code))

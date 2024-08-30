@@ -1,3 +1,8 @@
+import random
+import string
+import os
+import json
+
 from typing import Tuple, List
 from story.story_modules import (
     StoryModules,
@@ -7,6 +12,7 @@ from story.story_modules import (
     TextModule,
     canBeSpeechSynthesized,
 )
+from story.story_part import StoryPart
 
 ERRORCODE_NO_ERROR = 0
 ERRORCODE_WAITING_FOR_USER_INPUT = 1
@@ -14,19 +20,7 @@ ERRORCODE_STORY_COMPLETE = 2
 ERRORCODE_TEXT_GENERATION_ERROR = 3
 ERRORCODE_IMAGE_GENERATION_ERROR = 4
 
-
-class StoryPart:
-    def __init__(self, modules: List[StoryModules]):
-        self._modules = modules
-
-    def to_prompt_string(self) -> str:
-        return "\n".join([module.to_prompt_string() for module in self._modules])
-
-    def __getitem__(self, index):
-        return self._modules[index]
-
-    def __len__(self):
-        return len(self._modules)
+WORKING_FOLDER = "out/stories/"
 
 
 class Story:
@@ -38,6 +32,7 @@ class Story:
         generate_speeches=False,
         target_lang=None,
         story_length=3,
+        id=None,
     ):
         """
         Story class.
@@ -49,19 +44,39 @@ class Story:
             generate_speeches (bool): True if the story needs to generate speeches, False otherwise
             target_lang (str): the language of the story (None -> english, Example: "FR")
             story_length (int): the number of parts of the story
-
+            id (str): the id of the story
         """
         self._overview = overview
         self._story_max_length = story_length
         self._need_illustration = need_illustration
         self._generate_speeches = generate_speeches
         self._story_parts = []
+        self._story_part_index = 0
 
         if target_lang is not None and target_lang.lower() == "en":
             target_lang = None
         self._target_lang = target_lang
 
         self.set_title(title)
+
+        if id is None:
+            generated_id = self._generate_id()
+            if generated_id is None:
+                raise Exception("Failed to generate the story ID.")
+            self.id = generated_id
+        else:
+            self.id = id
+
+    def _generate_id(self):
+        for _ in range(10):
+            _id = "".join(random.choices(string.ascii_letters + string.digits, k=10))
+            if not os.path.exists(WORKING_FOLDER + _id):
+                return _id
+        return None
+
+    def get_working_folder(self) -> str:
+        working_folder = WORKING_FOLDER + self.id
+        return working_folder
 
     def set_title(self, title: str):
         """
@@ -132,25 +147,14 @@ class Story:
         """
         return self._story_parts
 
-    def _get_story_current_length(self) -> int:
+    def _get_story_part_index(self) -> int:
         """
         Get the current length of the story.
 
         Returns:
             int: the current length of the story
         """
-        return len(self._story_parts)
-
-    def _add_part_to_story(self, part: List[StoryModules]):
-        """
-        Add a part to the story.
-
-        Args:
-            list[StoryModule]: the part to add to the story
-        """
-        if len(part) == 0:
-            return
-        self._story_parts.append(StoryPart(part))
+        return self._story_part_index
 
     def _generate_idea(self) -> bool:
         """
@@ -197,9 +201,9 @@ class Story:
         """
         raise NotImplementedError
 
-    def generate_next_part(self) -> Tuple[int, List[StoryModules]]:
+    def generate_next_parts(self) -> Tuple[int, List[StoryPart]]:
         """
-        Generate the next part of the story.
+        Generate the next parts of the story.
 
         Returns:
             int: error code:
@@ -213,25 +217,77 @@ class Story:
                 (image generation)
                 - 4 image generation error
 
-            list[StoryModules]: The generated part of the story.
+            List[StoryPart]: The generated part of the story.
         """
-        error_code, modules = self._generate_next_modules()
+        resulting_parts = None
+        if self._get_story_part_index() >= len(self._story_parts):
+            error_code, modules = self._generate_next_modules()
 
-        if error_code == ERRORCODE_NO_ERROR:
-            # Translate the necessary modules
-            if self._target_lang is not None:
-                print("Translating the story...")
-                for module in modules:
-                    if isinstance(module, isTranslatable):
-                        module.set_translation(target_lang=self._target_lang)
+            if error_code == ERRORCODE_NO_ERROR:
+                # Translate the necessary modules
+                if self._target_lang is not None:
+                    print("Translating the story...")
+                    for module in modules:
+                        if isinstance(module, isTranslatable):
+                            module.set_translation(target_lang=self._target_lang)
 
-            # Generate the speeches
-            if self._generate_speeches:
-                print("Generating the speeches...")
-                for module in modules:
-                    if isinstance(module, canBeSpeechSynthesized):
-                        module.generate_speech()
+                # Generate the speeches
+                if self._generate_speeches:
+                    print("Generating the speeches...")
+                    for module in modules:
+                        if isinstance(module, canBeSpeechSynthesized):
+                            module.generate_speech(
+                                working_folder=self.get_working_folder()
+                            )
 
-            self._add_part_to_story(modules)
+                resulting_parts = [StoryPart(modules)]
+                self._story_parts.extend(resulting_parts)
 
-        return error_code, modules
+            self.save_to_file()
+            self._story_part_index += 1
+        else:
+            len_generated_story = len(self._story_parts)
+
+            resulting_parts = self._story_parts[
+                self._story_part_index : len_generated_story
+            ]
+            self._story_part_index = len_generated_story
+            error_code = ERRORCODE_NO_ERROR
+
+        return error_code, resulting_parts
+
+    def save_to_file(self):
+        """
+        Save the story to file.
+        """
+        directory = self.get_working_folder()
+        os.makedirs(directory, exist_ok=True)
+
+        filename = directory + "/story.json"
+        story_dict = self.to_dict()
+        with open(filename, "w") as file:
+            json.dump(story_dict, file, indent=4)
+
+    def to_dict(self) -> dict:
+        """
+        Convert the story to a dictionary.
+
+        Returns:
+            dict: the dictionary that represents the story
+        """
+        story_dict = {
+            "id": self.id,
+            "title": (
+                self._title_module.to_dict() if self._title_module is not None else None
+            ),
+            "overview": self._overview,
+            "need_illustration": self._need_illustration,
+            "generate_speeches": self._generate_speeches,
+            "target_lang": self._target_lang,
+            "story_parts": [part.to_dict() for part in self._story_parts],
+        }
+        return story_dict
+
+    @staticmethod
+    def load_story(directory: str):
+        raise NotImplementedError

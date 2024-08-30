@@ -175,7 +175,9 @@ Your answer must contain a list of illustrations in the following format:
     )
 
 
-def query_illustration(text: str, description: str, text_subpart: str):
+def query_illustration(
+    text: str, description: str, text_subpart: str, working_folder: str = "out"
+) -> str:
     """
     Generate an illustration using the OpenAI API.
 
@@ -183,6 +185,7 @@ def query_illustration(text: str, description: str, text_subpart: str):
         text (str): The entire text to generate the illustration
         description (str): The description of the illustration
         text_subpart (str): The text subpart that should be illustrated.
+        working_folder (str): The working folder to save the illustration
 
     Returns:
         str: path to the generated image
@@ -232,7 +235,9 @@ Provide the image description in the following format:
     if answer is None:
         return None
     image_description = answer["image_description"]
-    return query_openai_image_generation(image_description, style="vivid")
+    return query_openai_image_generation(
+        image_description, style="vivid", working_folder=working_folder
+    )
 
 
 def get_text_illustrations(text: str, max_illustrations: int = 2) -> List[str]:

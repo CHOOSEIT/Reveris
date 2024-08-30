@@ -10,6 +10,18 @@ class StoryModules:
     def to_prompt_string(self):
         raise NotImplementedError
 
+    def to_dict(self):
+        raise NotImplementedError
+
+    @staticmethod
+    def from_dict(module_dict):
+        classes = globals()
+        module_type = module_dict["type"]
+        if module_type not in classes:
+            raise ValueError(f"Unknown module type {module_type}")
+
+        return classes[module_type].from_dict(module_dict)
+
 
 class HasDisplayableText:
     def __init__(self):
@@ -67,8 +79,11 @@ class canBeSpeechSynthesized:
     def _get_speech_text(self):
         raise NotImplementedError
 
-    def generate_speech(self):
-        filename = query_speech(self._get_speech_text())
+    def generate_speech(self, working_folder: str = "out"):
+        """
+        Generate the speech of the text and save it in the working folder
+        """
+        filename = query_speech(self._get_speech_text(), working_folder=working_folder)
         self._speech_file_path = filename
 
     def has_speech_generated(self):
@@ -76,6 +91,9 @@ class canBeSpeechSynthesized:
 
     def get_speech_file_path(self):
         return self._speech_file_path
+
+    def set_speech_file_path(self, speech_file_path):
+        self._speech_file_path = speech_file_path
 
 
 class TextModule(
@@ -114,6 +132,22 @@ class TextModule(
     def _get_speech_text(self):
         return self.get_displayed_text()
 
+    # Override from StoryModules
+    def to_dict(self):
+        return {
+            "type": "TextModule",
+            "text": self.text,
+            "displayed_text": self._displayed_text,
+            "speech_file_path": self.get_speech_file_path(),
+        }
+
+    # Override from StoryModules
+    @staticmethod
+    def from_dict(module_dict):
+        text_module = TextModule(module_dict["text"], module_dict["displayed_text"])
+        text_module.set_speech_file_path(module_dict["speech_file_path"])
+        return text_module
+
 
 class ImageModule(StoryModules):
     """
@@ -139,6 +173,18 @@ class ImageModule(StoryModules):
     # Override from StoryModules
     def to_prompt_string(self):
         return ""
+
+    # Override from StoryModules
+    def to_dict(self):
+        return {
+            "type": "ImageModule",
+            "image_path": self.image_path,
+        }
+
+    # Override from StoryModules
+    @staticmethod
+    def from_dict(module_dict):
+        return ImageModule(module_dict["image_path"])
 
 
 class ChoiceModule(StoryModules, HasDisplayableAndIsTranslatableText):
@@ -176,6 +222,22 @@ class ChoiceModule(StoryModules, HasDisplayableAndIsTranslatableText):
         if isinstance(other, ChoiceModule):
             return self.choice_text == other.choice_text
         return False
+
+    # Override from StoryModules
+    def to_dict(self):
+        return {
+            "type": "ChoiceModule",
+            "choice_text": self.choice_text,
+            "displayed_choice_text": self._displayed_text,
+        }
+
+    # Override from StoryModules
+    @staticmethod
+    def from_dict(module_dict):
+        choice_module = ChoiceModule(
+            module_dict["choice_text"], module_dict["displayed_choice_text"]
+        )
+        return choice_module
 
 
 class PossibleChoicesModule(StoryModules, isTranslatable):
@@ -238,3 +300,28 @@ class PossibleChoicesModule(StoryModules, isTranslatable):
     def set_translation(self, target_lang: str):
         for choice in self.choices:
             choice.set_translation(target_lang)
+
+    # Override from StoryModules
+    def to_dict(self):
+        return {
+            "type": "PossibleChoicesModule",
+            "choices": [choice.to_dict() for choice in self.choices],
+            "selected": self.selected,
+            "selected_choice": (
+                self.selected_choice.to_dict() if self.selected else None
+            ),
+        }
+
+    # Override from StoryModules
+    @staticmethod
+    def from_dict(module_dict):
+        choices = [
+            ChoiceModule.from_dict(choice_dict)
+            for choice_dict in module_dict["choices"]
+        ]
+        possible_choices_module = PossibleChoicesModule(choices)
+        if module_dict["selected"]:
+            possible_choices_module.set_user_choice(
+                ChoiceModule.from_dict(module_dict["selected_choice"])
+            )
+        return possible_choices_module

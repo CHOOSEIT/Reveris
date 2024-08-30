@@ -3,7 +3,7 @@ import os
 from openaiAPI import query_openai_tts
 
 
-def query_speech(text: str):
+def query_speech(text: str, working_folder: str = "out") -> str:
     """
     Read the story.
 
@@ -13,4 +13,4 @@ def query_speech(text: str):
     Returns:
         str: the file path of the generated speech
     """
-    return query_openai_tts(text=text)
+    return query_openai_tts(text=text, working_folder=working_folder)

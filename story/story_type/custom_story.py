@@ -24,6 +24,7 @@ class CustomStory(Story):
             generate_speeches=generate_speeches,
             target_lang=target_lang,
             story_length=story_length,
+            id="custom_story",
         )
 
     def _generate_idea(self) -> bool:
@@ -36,7 +37,7 @@ class CustomStory(Story):
         if self.get_title_module() is None or self._overview is None:
             self._generate_idea()
 
-        current_story_length = self._get_story_current_length()
+        current_story_length = self._get_story_part_index()
         if current_story_length == 0:
             textAndSpeech = TextModule(
                 "Once upon a time, in a world of dreams, there was a dreamer who was searching for the meaning of life."
@@ -87,3 +88,8 @@ class CustomStory(Story):
             return ERRORCODE_STORY_COMPLETE, None
 
         return ERRORCODE_NO_ERROR, part
+
+    # Override from Story
+    def save_to_file(self):
+        # Prevent saving the story
+        return

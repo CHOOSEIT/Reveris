@@ -13,6 +13,7 @@ from streamlit_extras.stylable_container import stylable_container
 from streamlit_app.streamlit_utils import stream_data, isinstance_streamlit
 from typing import List
 from pygame import mixer
+from openaiAPI import openai_show_usage
 
 ### Main functions
 
@@ -292,16 +293,23 @@ def display():
     if st.session_state.story_extension_requested:
         story = st.session_state.story
         with st.spinner("Dreaming..."):
-            error_code, generated_part = story.generate_next_part()
+            error_code, generated_parts = story.generate_next_parts()
+
+        openai_show_usage()
 
         if error_code == 3 or error_code == 4:
             st.error("An error occurred while generating the story.")
             st.error("Error code: " + str(error_code))
         elif error_code == 0:
-            pages = _split_pages(generated_part)
-            if len(pages) > 0:
+            added_page = False
+            for generated_part in generated_parts:
+                pages = _split_pages(generated_part.get_modules())
+                if len(pages) > 0:
+                    added_page = True
+                    st.session_state.pages.extend(pages)
+
+            if added_page:
                 st.session_state.displayed_page_index += 1
-                st.session_state.pages.extend(pages)
 
         st.session_state.story_extension_requested = False
         if st.session_state.story_audio_requested:

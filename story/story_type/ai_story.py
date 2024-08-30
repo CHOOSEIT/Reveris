@@ -1,3 +1,6 @@
+import json
+import os
+
 from story.story import (
     Story,
     ERRORCODE_NO_ERROR,
@@ -20,6 +23,7 @@ from story.story_modules import (
     ChoiceModule,
     PossibleChoicesModule,
 )
+from story.story_part import StoryPart
 
 
 class AIStory(Story):
@@ -31,6 +35,7 @@ class AIStory(Story):
         generate_speeches=False,
         target_lang=None,
         story_length=3,
+        id=None,
     ):
         super().__init__(
             title=title,
@@ -39,6 +44,7 @@ class AIStory(Story):
             generate_speeches=generate_speeches,
             target_lang=target_lang,
             story_length=story_length,
+            id=id,
         )
 
     def _generate_idea(self) -> bool:
@@ -55,7 +61,7 @@ class AIStory(Story):
         return True
 
     def _generate_text_next_part(self) -> Tuple[int, List[StoryModules]]:
-        current_story_length = self._get_story_current_length()
+        current_story_length = self._get_story_part_index()
         if current_story_length > self._story_max_length:
             print("The story is already complete.")
             return ERRORCODE_STORY_COMPLETE, None
@@ -110,7 +116,7 @@ class AIStory(Story):
             generated_part.append(TextModule(extension["story_content"]))
             generated_part.append(PossibleChoicesModule(list_of_choices))
 
-        elif current_story_length == self._story_max_length:
+        elif current_story_length >= self._story_max_length:
             ###
             # Generate the end
             ###
@@ -161,6 +167,7 @@ class AIStory(Story):
                             text=self.get_prompt_story(),
                             description=suggested_illustration["description"],
                             text_subpart=suggested_illustration["text"],
+                            working_folder=self.get_working_folder(),
                         )
 
                         generated_modules.append(ImageModule(url))
@@ -174,3 +181,35 @@ class AIStory(Story):
                 generated_modules.append(module)
 
         return ERRORCODE_NO_ERROR, generated_modules
+
+    @staticmethod
+    def load_story(directory: str):
+        """
+        Load a story from a directory.
+
+        Args:
+            directory (str): the directory of the story (Example: "out/stories/story_id")
+
+        Returns:
+            Story: the loaded story or None if the story does not exist
+        """
+        if not os.path.exists(directory):
+            return None
+
+        filename = os.path.join(directory, "story.json")
+        with open(filename, "r") as file:
+            story_dict = json.load(file)
+            story = AIStory(
+                title="Title",
+                overview=story_dict["overview"],
+                need_illustration=story_dict["need_illustration"],
+                generate_speeches=story_dict["generate_speeches"],
+                target_lang=story_dict["target_lang"],
+                id=story_dict["id"],
+            )
+            story._title_module = TextModule.from_dict(story_dict["title"])
+            story._story_parts = [
+                StoryPart([StoryModules.from_dict(module) for module in part])
+                for part in story_dict["story_parts"]
+            ]
+            return story
