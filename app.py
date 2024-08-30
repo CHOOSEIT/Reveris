@@ -69,6 +69,8 @@ def get_story_infos():
     stories_info = []
     for story_dir in story_dirs:
         story_file = os.path.join(story_dir, "story.json")
+        if not os.path.exists(story_file):
+            continue
         with open(story_file) as f:
             json_data = json.load(f)
 
