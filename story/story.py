@@ -13,6 +13,7 @@ from story.story_modules import (
     canBeSpeechSynthesized,
 )
 from story.story_part import StoryPart
+from datetime import datetime
 
 ERRORCODE_NO_ERROR = 0
 ERRORCODE_WAITING_FOR_USER_INPUT = 1
@@ -277,6 +278,7 @@ class Story:
         """
         story_dict = {
             "id": self.id,
+            "saved_time": datetime.now().isoformat(),
             "title": (
                 self._title_module.to_dict() if self._title_module is not None else None
             ),
