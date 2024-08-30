@@ -60,9 +60,9 @@ class CustomStory(Story):
             part = [
                 textAndSpeech1,
                 ImageModule("out/qemQ2o.jpg"),
-                textAndSpeech2,
                 ImageModule("out/lb33UI.jpg"),
                 TextModule("This is a market"),
+                textAndSpeech2,
                 PossibleChoicesModule(
                     [
                         ChoiceModule("Continue dreaming 2"),
@@ -72,7 +72,6 @@ class CustomStory(Story):
             ]
         elif current_story_length == 2:
             part = [
-                TextModule("The dreamer decided to continue dreaming. *again*"),
                 ImageModule("out/village.jpg"),
                 TextModule("The dreamer found himself in a peaceful village."),
                 PossibleChoicesModule(

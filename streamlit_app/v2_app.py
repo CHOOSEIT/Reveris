@@ -1,6 +1,7 @@
 import streamlit as st
 import random
 import string
+import time
 
 from story.story_modules import (
     ImageModule,
@@ -11,18 +12,21 @@ from story.story_modules import (
 from streamlit_extras.stylable_container import stylable_container
 from streamlit_app.streamlit_utils import stream_data, isinstance_streamlit
 from typing import List
+from pygame import mixer
 
 ### Main functions
 
 
 def continue_dreaming():
     st.session_state.story_extension_requested = True
+    stop_playing_audio()
 
 
 def stop_dreaming():
     st.session_state.story = None
     st.session_state.story_extension_requested = False
     st.session_state.is_title_displayed = False
+    stop_audio()
 
 
 def enter_user_input(choice: ChoiceModule):
@@ -47,8 +51,6 @@ def display_module(module, is_new):
     if isinstance_streamlit(module, TextModule):
         choice_text = module.get_displayed_text()
         displayed_text = stream_data(choice_text) if is_new else choice_text
-        if module.has_speech_generated():
-            st.audio(module.get_speech_file_path(), format="audio/mp3")
 
         st.write(displayed_text)
     elif isinstance_streamlit(module, ImageModule):
@@ -134,20 +136,35 @@ def _display_page(page, is_new):
     display_story_title()
 
     def display_buttons():
-        b1, b2 = st.columns(2)
+        b1, b2, b3 = st.columns(3)
         with b1:
             st.button(
                 "⬅️",
                 on_click=previous_page,
-                disabled=st.session_state.displayed_page_index == 0,
+                disabled=st.session_state.displayed_page_index == 0
+                or st.session_state.story_audio_requested,
                 use_container_width=True,
             )
         with b2:
+            if st.session_state.story_audio_requested:
+                st.button(
+                    "🔇",
+                    on_click=stop_audio,
+                    use_container_width=True,
+                )
+            else:
+                st.button(
+                    "📢",
+                    on_click=start_audio,
+                    use_container_width=True,
+                )
+        with b3:
             st.button(
                 "➡️",
                 on_click=next_page,
                 disabled=st.session_state.displayed_page_index
-                == len(st.session_state.pages) - 1,
+                == len(st.session_state.pages) - 1
+                or st.session_state.story_audio_requested,
                 use_container_width=True,
             )
         st.button("🚫 Quit", on_click=stop_dreaming, use_container_width=True)
@@ -194,10 +211,59 @@ def next_page():
     st.session_state.displayed_page_index += 1
 
 
+def start_audio():
+    st.session_state.story_audio_requested = True
+    st.session_state.pages[st.session_state.displayed_page_index]["displayed"] = True
+
+
+def stop_audio():
+    stop_playing_audio()
+    st.session_state.story_audio_requested = False
+
+
+def stop_playing_audio():
+    if mixer.music.get_busy():
+        mixer.music.stop()
+
+
+def _next_audio_page():
+    page_index = st.session_state.displayed_page_index
+    if page_index != len(st.session_state.pages) - 1:
+        page_index += 1
+        st.session_state.displayed_page_index = page_index
+        st.session_state.pages[page_index]["displayed"] = True
+        st.rerun()
+
+
+def play_audio():
+    if st.session_state.story_audio_requested:
+        page_number = st.session_state.displayed_page_index
+        page = st.session_state.pages[page_number]
+        num_modules = len(page["modules"])
+
+        index = 0
+        while index < num_modules and st.session_state.story_audio_requested:
+            module = page["modules"][index]
+            if (
+                isinstance_streamlit(module, TextModule)
+                and module.has_speech_generated()
+            ):
+                mixer.music.load(module.get_speech_file_path())
+                mixer.music.play()
+
+                while mixer.music.get_busy():  # wait for music to finish playing
+                    time.sleep(1)
+            index += 1
+
+        if st.session_state.story_audio_requested:
+            _next_audio_page()
+
+
 # Main
 
 
 def refresh_initial_state():
+    mixer.init()
     if "story_extension_requested" not in st.session_state:
         st.session_state.story_extension_requested = False
     if "is_title_displayed" not in st.session_state:
@@ -206,14 +272,23 @@ def refresh_initial_state():
         st.session_state.pages = []
     if "displayed_page_index" not in st.session_state:
         st.session_state.displayed_page_index = -1
+    if "story_audio_requested" not in st.session_state:
+        st.session_state.story_audio_requested = False
 
 
 def start_dreaming():
     st.session_state.story_extension_requested = True
+    st.session_state.story_audio_requested = False
+    st.session_state.displayed_page_index = -1
+    st.session_state.pages = []
 
 
 def display():
     st.set_page_config(layout="wide")
+
+    placeholder = st.empty()
+    _clear_placeholder(placeholder, 10)
+
     if st.session_state.story_extension_requested:
         story = st.session_state.story
         with st.spinner("Dreaming..."):
@@ -229,8 +304,12 @@ def display():
                 st.session_state.pages.extend(pages)
 
         st.session_state.story_extension_requested = False
+        if st.session_state.story_audio_requested:
+            st.session_state.pages[st.session_state.displayed_page_index][
+                "displayed"
+            ] = True
 
-    placeholder = st.empty()
-    _clear_placeholder(placeholder, 4)
     with placeholder.container():
         display_page()
+
+    play_audio()
