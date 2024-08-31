@@ -209,8 +209,6 @@ def display(start_dreaming_function: callable):
     for story_info in stories_info:
         title = story_info["title"]
         lang = story_info["lang"]
-
-        title_key = title.replace(" ", "_")
         latex_button = r"""$
                 \Large\text{[TITLE]}
                 $
@@ -227,6 +225,6 @@ def display(start_dreaming_function: callable):
                 story_info["path"],
                 start_dreaming_function,
             ),
-            key=title_key,
+            key=story_info["path"],
             use_container_width=True,
         )
