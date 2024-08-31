@@ -237,7 +237,7 @@ Provide the image description in the following format:
                 "The image description is too long (>900 characters). Please provide a shorter description.",
             )
 
-        return True
+        return True, json_answer
 
     answer = query_llm_with_feedback_json(
         message_history=messages,
