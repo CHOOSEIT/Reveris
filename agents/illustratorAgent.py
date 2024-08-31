@@ -227,10 +227,23 @@ Provide the image description in the following format:
         {"role": "system", "content": prompt},
     ]
 
+    def feedback_json_function(
+        json_answer: dict, is_final_feedback: bool
+    ) -> Tuple[bool, object]:
+        len_description = len(json_answer["image_description"])
+        if len_description >= 900:
+            return (
+                False,
+                "The image description is too long (>900 characters). Please provide a shorter description.",
+            )
+
+        return True
+
     answer = query_llm_with_feedback_json(
         message_history=messages,
         list_json_parent_key=["image_description"],
         json_format=JSON_FORMAT,
+        feedback_function=feedback_json_function,
     )
     if answer is None:
         return None
