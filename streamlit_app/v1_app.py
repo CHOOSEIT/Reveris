@@ -108,8 +108,8 @@ def enter_user_input(choice: ChoiceModule):
 # Main
 
 
-def set_display_parameters():
-    st.set_page_config(layout="centered")
+def set_display_parameters(page_title, page_icon):
+    st.set_page_config(layout="centered", page_title=page_title, page_icon=page_icon)
 
 
 def refresh_initial_state():

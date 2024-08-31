@@ -98,8 +98,8 @@ def get_story_infos():
 # Main functions
 
 
-def set_display_parameters():
-    st.set_page_config(layout="centered")
+def set_display_parameters(page_title, page_icon):
+    st.set_page_config(layout="centered", page_title=page_title, page_icon=page_icon)
 
 
 def refresh_initial_state():
@@ -113,7 +113,7 @@ def refresh_initial_state():
 
 
 def display(start_dreaming_function: callable):
-    st.title("💭 Reveries 💭")
+    st.title("💭 Reveris 💭")
 
     col1, col2 = st.columns(2)
     with col1:

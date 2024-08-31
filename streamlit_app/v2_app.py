@@ -244,8 +244,8 @@ def play_audio():
 # Main
 
 
-def set_display_parameters():
-    st.set_page_config(layout="wide")
+def set_display_parameters(page_title, page_icon):
+    st.set_page_config(layout="wide", page_title=page_title, page_icon=page_icon)
 
 
 def refresh_initial_state():

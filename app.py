@@ -36,10 +36,16 @@ def start_dreaming(
 
 ### Main
 DISPLAY_VERSION = 2
+
+PAGE_TITLE = "Reveris"
+PAGE_ICON = "💭"
+
 if st.session_state.story is not None:
-    get_display_app(DISPLAY_VERSION).set_display_parameters()
+    get_display_app(DISPLAY_VERSION).set_display_parameters(
+        page_title=PAGE_TITLE, page_icon=PAGE_ICON
+    )
 else:
-    main_page.set_display_parameters()
+    main_page.set_display_parameters(page_title=PAGE_TITLE, page_icon=PAGE_ICON)
 
 # This is a workaround to clear the previous page
 # (this prevent the previous page to be displayed as shadow)
