@@ -139,19 +139,16 @@ def _display_page(page, is_new):
                 or st.session_state.story_audio_requested,
                 use_container_width=True,
             )
+        audio_disabled = not _has_speech_available_page()
+        logo = "🔇" if st.session_state.story_audio_requested else "🔊"
+        action = stop_audio if st.session_state.story_audio_requested else start_audio
         with b2:
-            if st.session_state.story_audio_requested:
-                st.button(
-                    "🔇",
-                    on_click=stop_audio,
-                    use_container_width=True,
-                )
-            else:
-                st.button(
-                    "📢",
-                    on_click=start_audio,
-                    use_container_width=True,
-                )
+            st.button(
+                logo,
+                on_click=action,
+                disabled=audio_disabled,
+                use_container_width=True,
+            )
         with b3:
             st.button(
                 "➡️",
@@ -215,6 +212,18 @@ def _next_audio_page():
         st.session_state.displayed_page_index = page_index
         st.session_state.pages[page_index]["displayed"] = True
         st.rerun()
+
+
+def _has_speech_available_page():
+    page_number = st.session_state.displayed_page_index
+    page = st.session_state.pages[page_number]
+    for module in page["modules"]:
+        if (
+            istype_module_streamlit(module, TextModule)
+            and module.has_speech_generated()
+        ):
+            return True
+    return False
 
 
 def play_audio():
