@@ -10,7 +10,10 @@ from story.story_modules import (
     PossibleChoicesModule,
 )
 from streamlit_extras.stylable_container import stylable_container
-from streamlit_app.streamlit_utils import stream_data, istype_module_streamlit
+from streamlit_app.streamlit_utils import (
+    stream_data,
+    isinstance_story_modules_streamlit,
+)
 
 ### Display functions
 
@@ -24,16 +27,16 @@ def display_module(module, is_new):
         is_new (bool): whether the module is new
     """
     unique_key = "".join(random.choices(string.ascii_letters + string.digits, k=6))
-    if istype_module_streamlit(module, TextModule):
+    if isinstance_story_modules_streamlit(module, TextModule):
         choice_text = module.get_displayed_text()
         displayed_text = stream_data(choice_text) if is_new else choice_text
         if module.has_speech_generated():
             st.audio(module.get_speech_file_path(), format="audio/mp3")
 
         st.write(displayed_text)
-    elif istype_module_streamlit(module, ImageModule):
+    elif isinstance_story_modules_streamlit(module, ImageModule):
         st.image(module.get_image_path(), use_column_width=True)
-    elif istype_module_streamlit(module, PossibleChoicesModule):
+    elif isinstance_story_modules_streamlit(module, PossibleChoicesModule):
         disabled = module.has_selected_choice()
         made_choice = module.get_selected_choice()
         choices = [choice for choice in module.get_choices()]
