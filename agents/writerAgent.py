@@ -26,7 +26,12 @@ def query_story_introduction(story_overview: str):
         AGENT_INTRODUCTION
         + """Write the beginning of story given its beginning overview. 
 Tell the story assuming that I do not know the overview nor have any context about it.
-It moreover should be short (1 paragraph maximum), and set the stage for the story. That will be completed later.
+
+Write the introduction of the story. Describe the environment, the main characters, and the current situation.
+    You should for example describe the setting of the characters, the time, the place, and the main characters and how it end up in the current situation (the plot of the story).
+You must explain how to main character ended up in the current situation before starting the story.
+
+Your instroduction should be short (2 paragraphs maximum) and you should talk about the main character as the second person (you).
 
 Do not start to make a transition for the following part (Do not ask question nor do not question the following part, just set the environment).
 Your introduction can end abruptly, as it will be continued later. Do not try to engage the user in the story, just set the stage for the story.
@@ -95,6 +100,8 @@ Write the continuation of the story, given the beginning overview and the curren
 The continuation should be short (2 paragraphs maximum). The story will be completed later, should write a single part of it.
 
 Your part should contain a plot twist or a new element that will make the story more engaging.
+Whenever a new character or place is introduced, make sure to describe them smoothly in the story.
+
 End the part with a question or choice that the user should make as the person within the story in order to decide how the story will continue.
 Craft the story such that the question you have 2 to 4 possible answers that have 2 to 4 radically different effects on the story. You have to see the story as a "story game".
 

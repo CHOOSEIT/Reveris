@@ -40,6 +40,8 @@ Give a quick overview of the main plot of the story and the idea behind it.
 The story should be able to be told in a few paragraphs.
 Make sure that the story has a clear goal. Make sure to outline this goal.
 
+Make the title clear. Moreover do not include "choice" related words in the title.
+
 Moreover make sure to be clear about the places, characters, objects and goal that you want to include in the story.
 
 You should create a story overview that has a clear beginning and middle.
@@ -82,12 +84,12 @@ Make sure to have your answer in the JSON format.
 PREVIOUS_IDEAS_FILE_PATH = "out/previous_ideas.json"
 
 
-def query_idea() -> dict:
+def get_previous_ideas() -> list:
     """
-    Create a story idea.
+    Get the previous ideas.
 
     Returns:
-        str: The story idea
+        list: the previous ideas
     """
     base_path = os.path.dirname(PREVIOUS_IDEAS_FILE_PATH)
     os.makedirs(base_path, exist_ok=True)
@@ -97,7 +99,32 @@ def query_idea() -> dict:
     except:
         ideas = []
 
-    ideas = ideas[-40:]
+    return ideas
+
+
+def add_new_idea(idea: dict):
+    """
+    Add a new idea to the previous ideas.
+
+    Args:
+        idea (dict): the idea (story information)
+    """
+    ideas = get_previous_ideas()
+    ideas.append(idea)
+    with open(PREVIOUS_IDEAS_FILE_PATH, "w") as f:
+        json.dump(ideas, f)
+
+
+def query_idea() -> dict:
+    """
+    Create a story idea.
+
+    Returns:
+        str: The story idea
+    """
+    ideas = get_previous_ideas()
+
+    ideas = ideas[-50:]
 
     JSON_FORMAT = """
 {
@@ -112,7 +139,7 @@ Note that your previously generated ideas are:
 [STORIES]
 
 Make sure that your new idea is not similar or close to the previous ones. Make it truly unique.
-Try to not use the same places, themes, characters, objects, and goals that you have used in the previous ideas.
+Try to not use the same places, themes, characters, character names, objects, and goals that you have used in the previous ideas.
 
 The story that you create should have a real story and structure with arcs and a clear goal. But note that you should precise in the overview how the stories may end (as it is wrote along the way) depending on the choices made by the player.
 The story should have clear different paths and ending that each of them can be good or bad depending on the player decisions.
@@ -122,7 +149,8 @@ You answer must contains a single JSON object in the following format:
 Make sure to have your answer in the JSON format.
 
     """.replace(
-        "[STORIES]", "\n".join(ideas) if len(ideas) > 0 else "None"
+        "[STORIES]",
+        "\n".join([str(idea) for idea in ideas]) if len(ideas) > 0 else "None",
     ).replace(
         "[FORMAT]", JSON_FORMAT
     )
@@ -139,14 +167,7 @@ Make sure to have your answer in the JSON format.
     if answer is None:
         return None
 
-    idea = answer["idea"]
-
-    ideas.append(idea)
-
-    with open(PREVIOUS_IDEAS_FILE_PATH, "w") as f:
-        json.dump(ideas, f)
-
-    return idea
+    return answer["idea"]
 
 
 def generate_title_overview_story():
@@ -164,6 +185,8 @@ def generate_title_overview_story():
     expanded_story_id = query_expand_story_idea(story_idea=story_idea)
     if expanded_story_id is None:
         return None, None
+
+    add_new_idea(expanded_story_id)
 
     title = expanded_story_id["title"]
     overview = expanded_story_id["overview"]
