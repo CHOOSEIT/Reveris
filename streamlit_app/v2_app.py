@@ -58,8 +58,6 @@ def display_module(module, is_new):
         displayed_text = stream_data(choice_text) if is_new else choice_text
 
         st.write(displayed_text)
-    elif isinstance_story_modules_streamlit(module, ImageModule):
-        st.image(module.get_image_path(), use_column_width=True)
     elif isinstance_story_modules_streamlit(module, PossibleChoicesModule):
         disabled = module.has_selected_choice()
         made_choice = module.get_selected_choice()
@@ -110,7 +108,10 @@ def _split_pages(modules) -> List[dict]:
     started_page = []
     found_image = None
     for module in modules:
-        if isinstance_story_modules_streamlit(module, ImageModule):
+        if (
+            isinstance_story_modules_streamlit(module, ImageModule)
+            and module.has_image_path()
+        ):
             if found_image is not None:
                 page_list.append(
                     {"image": found_image, "modules": started_page, "displayed": False}

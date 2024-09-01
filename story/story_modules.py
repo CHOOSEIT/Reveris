@@ -173,6 +173,9 @@ class ImageModule(StoryModules):
     def get_image_path(self):
         return self.image_path
 
+    def has_image_path(self):
+        return self.image_path is not None
+
     # Override from StoryModules
     def to_prompt_string(self):
         return ""

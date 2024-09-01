@@ -34,7 +34,10 @@ def display_module(module, is_new):
             st.audio(module.get_speech_file_path(), format="audio/mp3")
 
         st.write(displayed_text)
-    elif isinstance_story_modules_streamlit(module, ImageModule):
+    elif (
+        isinstance_story_modules_streamlit(module, ImageModule)
+        and module.has_image_path()
+    ):
         st.image(module.get_image_path(), use_column_width=True)
     elif isinstance_story_modules_streamlit(module, PossibleChoicesModule):
         disabled = module.has_selected_choice()

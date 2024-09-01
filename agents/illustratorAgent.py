@@ -233,6 +233,10 @@ Provide the image description in the following format:
     ) -> Tuple[bool, object]:
         len_description = len(json_answer["image_description"])
         if len_description >= 900:
+            if is_final_feedback:
+                # We still have 900 characters that describe the image
+                result = {"image_description": json_answer["image_description"][:900]}
+                return (True, result)
             return (
                 False,
                 "The image description is too long (>900 characters). Please provide a shorter description.",

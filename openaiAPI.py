@@ -125,6 +125,9 @@ def query_openai_image_generation(
     Returns:
         str: file path of the generated image
     """
+    if prompt is None:
+        return None
+
     time.sleep(_api_request_delay)
     response = _openai_client.images.generate(
         model=_openai_model_image_model,
