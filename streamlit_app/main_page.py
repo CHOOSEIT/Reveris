@@ -2,7 +2,6 @@ import streamlit as st
 import os
 import json
 
-from story.story_type.custom_story import CustomStory
 from story.story_type.ai_story import AIStory
 from story.story_modules import TextModule
 from datetime import datetime
@@ -51,15 +50,21 @@ def load_story(story_path, start_dreaming_function: callable):
 
 def get_story_infos():
     # Get the history of stories
+    story_dirs_path = ["demo_story", "out/stories"]
+    story_dirs = []
+    for directory_path in story_dirs_path:
 
-    directory_path = "out/stories"
+        if not os.path.exists(directory_path):
+            continue
 
-    # Get a list of folder names
-    story_dirs = [
-        os.path.join(directory_path, name)
-        for name in os.listdir(directory_path)
-        if os.path.isdir(os.path.join(directory_path, name))
-    ]
+        # Get a list of folder names
+        story_dirs.extend(
+            [
+                os.path.join(directory_path, name)
+                for name in os.listdir(directory_path)
+                if os.path.isdir(os.path.join(directory_path, name))
+            ]
+        )
     # Open the json
     stories_info = []
     for story_dir in story_dirs:

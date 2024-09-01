@@ -35,7 +35,7 @@ API_MAX_BATCH_SPEECHES = 5
 API_BATCH_DELAY = 60  # seconds
 # Add a delay to API request to avoid rate limiting
 # (+ recommended: set API_MAX_BATCH_IMAGES and API_MAX_BATCH_SPEECHES to 1)
-_api_request_delay = 0  # seconds
+API_REQUEST_DELAY = 0  # seconds
 
 
 ###############################################################################################
@@ -52,7 +52,7 @@ def query_openai(messages: list, temperature=0.0) -> str:
         temperature (float): The temperature to use for the query (0 to 2 range)
         output_format (class): The output format to use for the query
     """
-    time.sleep(_api_request_delay)
+    time.sleep(API_REQUEST_DELAY)
     response: dict = _openai_client.chat.completions.create(
         messages=messages,
         model=_openai_model,
@@ -81,7 +81,7 @@ def query_openai_tts(text: str, working_folder: str = "out") -> str:
         text (str): The text to convert to speech
         working_folder (str): The working folder to save the speech
     """
-    time.sleep(_api_request_delay)
+    time.sleep(API_REQUEST_DELAY)
     openai_add_text_to_speech_usage(len(text))
 
     filename = (
@@ -128,7 +128,7 @@ def query_openai_image_generation(
     if prompt is None:
         return None
 
-    time.sleep(_api_request_delay)
+    time.sleep(API_REQUEST_DELAY)
     response = _openai_client.images.generate(
         model=_openai_model_image_model,
         prompt=prompt,
