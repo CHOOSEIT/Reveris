@@ -1,7 +1,9 @@
 import json
+import time
 
 from openaiAPI import query_openai
 from typing import Tuple, List
+from threading import Thread, Lock
 
 AGENT_INTRODUCTION = """You are a story writer. Your goal create an engaging story idea that will be remembered by the user.
 The story is lived by the user, so it should be in the user's perspective but told as the second person.
@@ -116,3 +118,55 @@ def query_llm_with_feedback_json(
         loop_times=loop_times,
         temperature=temperature,
     )
+
+
+def query_in_parallel(
+    function: callable,
+    args_list: List[List],
+    max_parallel_queries,
+    time_between_queries,
+) -> list:
+    """
+    Query a function in parallel.
+
+    Args:
+        function (callable): the function to query
+        args_list (List[List[]]): the list of list of arguments to pass to the function
+        max_parallel_queries (int): the maximum number of parallel queries
+        time_between_queries (int): the time to wait between queries
+
+    Returns:
+        list: the list of results
+    """
+
+    results = []
+    threads = []
+
+    result_lock = Lock()
+
+    def call_and_store_result(id, args):
+        result = function(*args)
+
+        with result_lock:
+            results.append([id, result])
+
+    numbers_of_call = len(args_list)
+    for start_index in range(0, numbers_of_call, max_parallel_queries):
+        args_to_call = args_list[start_index : start_index + max_parallel_queries]
+        for i, args in enumerate(args_to_call):
+            t = Thread(
+                target=call_and_store_result,
+                args=(start_index + i, args),
+            )
+            threads.append(t)
+            t.start()
+
+        for t in threads:
+            t.join()
+
+        if start_index + max_parallel_queries < numbers_of_call:
+            time.sleep(time_between_queries)
+
+    results = sorted(results, key=lambda x: x[0])
+    results = [result[1] for result in results]
+    return results

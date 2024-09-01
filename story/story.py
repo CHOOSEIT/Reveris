@@ -12,8 +12,10 @@ from story.story_modules import (
     TextModule,
     canBeSpeechSynthesized,
 )
+from agents.agent_utils import query_in_parallel
 from story.story_part import StoryPart
 from datetime import datetime
+from openaiAPI import API_BATCH_DELAY, API_MAX_BATCH_SPEECHES
 
 ERRORCODE_NO_ERROR = 0
 ERRORCODE_WAITING_FOR_USER_INPUT = 1
@@ -232,14 +234,24 @@ class Story:
                         if isinstance(module, isTranslatable):
                             module.set_translation(target_lang=self._target_lang)
 
+                def generate_module_speech(module: canBeSpeechSynthesized):
+                    module.generate_speech(working_folder=self.get_working_folder())
+
+                need_speech_generation = []
                 # Generate the speeches
                 if self._generate_speeches:
                     print("Generating the speeches...")
                     for module in modules:
                         if isinstance(module, canBeSpeechSynthesized):
-                            module.generate_speech(
-                                working_folder=self.get_working_folder()
-                            )
+                            need_speech_generation.append(module)
+
+                args = [[module] for module in need_speech_generation]
+                query_in_parallel(
+                    function=generate_module_speech,
+                    args_list=args,
+                    max_parallel_queries=API_MAX_BATCH_SPEECHES,
+                    time_between_queries=API_BATCH_DELAY,
+                )
 
                 resulting_parts = [StoryPart(modules)]
                 self._story_parts.extend(resulting_parts)

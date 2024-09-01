@@ -175,11 +175,12 @@ Your answer must contain a list of illustrations in the following format:
     )
 
 
-def query_illustration(
+def query_illustration_complete_description(
     text: str, description: str, text_subpart: str, working_folder: str = "out"
 ) -> str:
     """
-    Generate an illustration using the OpenAI API.
+    Returns the complete description of the illustration based on the text, the description and the text subpart.
+    The returned description can be used a prompt to generate the illustration.
 
     Args:
         text (str): The entire text to generate the illustration
@@ -188,7 +189,7 @@ def query_illustration(
         working_folder (str): The working folder to save the illustration
 
     Returns:
-        str: path to the generated image
+        str: complete description of the illustration
     """
 
     JSON_FORMAT = """
@@ -247,21 +248,4 @@ Provide the image description in the following format:
     )
     if answer is None:
         return None
-    image_description = answer["image_description"]
-    return query_openai_image_generation(
-        image_description, style="vivid", working_folder=working_folder
-    )
-
-
-def get_text_illustrations(text: str, max_illustrations: int = 2) -> List[str]:
-    urls = []
-    illustrations = query_suggested_illustrations(
-        text, max_illustrations=max_illustrations
-    )
-    for i, match in enumerate(illustrations):
-        print("Generating illustration: ", i + 1)
-        url = query_illustration(
-            text=text, description=match["description"], text_subpart=match["text"]
-        )
-        urls.append(url)
-    return urls
+    return answer["image_description"]

@@ -13,7 +13,10 @@ from agents.writerAgent import (
     query_story_continuation,
     query_story_end,
 )
-from agents.illustratorAgent import query_suggested_illustrations, query_illustration
+from agents.illustratorAgent import (
+    query_suggested_illustrations,
+    query_illustration_complete_description,
+)
 from agents.ideaAgent import generate_title_overview_story
 from typing import Tuple, List
 from story.story_modules import (
@@ -24,6 +27,12 @@ from story.story_modules import (
     PossibleChoicesModule,
 )
 from story.story_part import StoryPart
+from agents.agent_utils import query_in_parallel
+from openaiAPI import (
+    query_openai_image_generation,
+    API_MAX_BATCH_IMAGES,
+    API_BATCH_DELAY,
+)
 
 
 class AIStory(Story):
@@ -138,13 +147,17 @@ class AIStory(Story):
         if generated_output is None:
             return text_code_error, None
 
+        # Batch illustration generation
+        prompt_story = self.get_prompt_story()
+        working_folder = self.get_working_folder()
+        illustration_generation = []
+
         for module in generated_output:
             if isinstance(module, TextModule):
                 generated_text = module.get_text()
                 if self._need_illustration:
                     # Generate the illustrations
 
-                    print("Generating the illustration suggestions ...")
                     suggested_illustrations = query_suggested_illustrations(
                         generated_text, max_illustrations=2
                     )
@@ -161,16 +174,15 @@ class AIStory(Story):
                         if len(seperated) != 0:
                             generated_modules.append(TextModule(seperated))
 
-                        # Generate the illustration
-                        print("Generating an illustration ...")
-                        url = query_illustration(
-                            text=self.get_prompt_story(),
-                            description=suggested_illustration["description"],
-                            text_subpart=suggested_illustration["text"],
-                            working_folder=self.get_working_folder(),
+                        # Add to the batch illustration generation
+                        new_image_module = ImageModule(None)
+                        illustration_generation.append(
+                            {
+                                "suggestion": suggested_illustration,
+                                "module": new_image_module,
+                            }
                         )
-
-                        generated_modules.append(ImageModule(url))
+                        generated_modules.append(new_image_module)
                         current_start = end
 
                     final_separation = generated_text[current_start:]
@@ -179,6 +191,35 @@ class AIStory(Story):
                     generated_modules.append(module)
             else:
                 generated_modules.append(module)
+
+        if self._need_illustration:
+            # Generate the illustrations
+
+            illustration_descriptions = []
+            for illustration in illustration_generation:
+                description = query_illustration_complete_description(
+                    text=prompt_story,
+                    description=illustration["suggestion"]["description"],
+                    text_subpart=illustration["suggestion"]["text"],
+                    working_folder=working_folder,
+                )
+                illustration_descriptions.append(description)
+
+            print("Generating illustrations ...")
+            args = [
+                [description, "vivid", working_folder]
+                for description in illustration_descriptions
+            ]
+
+            urls = query_in_parallel(
+                function=query_openai_image_generation,
+                args_list=args,
+                max_parallel_queries=API_MAX_BATCH_IMAGES,
+                time_between_queries=API_BATCH_DELAY,
+            )
+
+            for i, url in enumerate(urls):
+                illustration_generation[i]["module"].set_image_path(url)
 
         return ERRORCODE_NO_ERROR, generated_modules
 

@@ -167,6 +167,9 @@ class ImageModule(StoryModules):
         super(StoryModules, self).__init__()
         self.image_path = image_path
 
+    def set_image_path(self, image_path):
+        self.image_path = image_path
+
     def get_image_path(self):
         return self.image_path
 

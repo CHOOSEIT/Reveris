@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from random import randint
 from PIL import Image
+from threading import Lock
 
 load_dotenv()
 
@@ -28,7 +29,12 @@ _api_prices = {
     "text_to_speech_per_character": 0.000015,
     "image_generation": 0.120,
 }
+# Allow multi-threading calls
+API_MAX_BATCH_IMAGES = 5
+API_MAX_BATCH_SPEECHES = 5
+API_BATCH_DELAY = 60  # seconds
 # Add a delay to API request to avoid rate limiting
+# (+ recommended: set API_MAX_BATCH_IMAGES and API_MAX_BATCH_SPEECHES to 1)
 _api_request_delay = 0  # seconds
 
 
@@ -64,6 +70,8 @@ def query_openai(messages: list, temperature=0.0) -> str:
 # Query OpenAI Text to Speech
 ###############################################################################################
 
+speech_dir_checking_lock = Lock()
+
 
 def query_openai_tts(text: str, working_folder: str = "out") -> str:
     """
@@ -82,6 +90,9 @@ def query_openai_tts(text: str, working_folder: str = "out") -> str:
         + ".mp3"
     )
 
+    with speech_dir_checking_lock:
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+
     with _openai_client.audio.speech.with_streaming_response.create(
         model=_openai_model_tts,
         voice="nova",
@@ -96,6 +107,8 @@ def query_openai_tts(text: str, working_folder: str = "out") -> str:
 ###############################################################################################
 # Query OpenAI Image Generation
 ###############################################################################################
+
+image_dir_checking_lock = Lock()
 
 
 def query_openai_image_generation(
@@ -132,8 +145,10 @@ def query_openai_image_generation(
         + "".join(random.choices(string.ascii_letters + string.digits, k=6))
         + ".jpg"
     )
-    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    with image_dir_checking_lock:
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
     image_obj.save(filename, quality=100, subsampling=0)
+    print("Image saved to {}".format(filename))
     return filename
 
 
@@ -147,27 +162,33 @@ _usage_dict = {
     "generated_images": 0,
     "estimated_cost": 0.0,
 }
+chat_completion_lock = Lock()
+text_to_speech_lock = Lock()
+image_generation_lock = Lock()
 
 
 def openai_add_usage(usage: dict) -> None:
-    _usage_dict["total_input_tokens"] += usage["prompt_tokens"]
-    _usage_dict["total_output_tokens"] += usage["completion_tokens"]
-    _usage_dict["estimated_cost"] += (
-        usage["prompt_tokens"] * _api_prices["per_token_input"]
-        + usage["completion_tokens"] * _api_prices["per_token_output"]
-    )
+    with chat_completion_lock:
+        _usage_dict["total_input_tokens"] += usage["prompt_tokens"]
+        _usage_dict["total_output_tokens"] += usage["completion_tokens"]
+        _usage_dict["estimated_cost"] += (
+            usage["prompt_tokens"] * _api_prices["per_token_input"]
+            + usage["completion_tokens"] * _api_prices["per_token_output"]
+        )
 
 
 def openai_add_text_to_speech_usage(characters_number: int) -> None:
-    _usage_dict["text_to_speech_characters"] += characters_number
-    _usage_dict["estimated_cost"] += (
-        characters_number * _api_prices["text_to_speech_per_character"]
-    )
+    with text_to_speech_lock:
+        _usage_dict["text_to_speech_characters"] += characters_number
+        _usage_dict["estimated_cost"] += (
+            characters_number * _api_prices["text_to_speech_per_character"]
+        )
 
 
 def openai_add_image_generation(image_number: int) -> None:
-    _usage_dict["generated_images"] += image_number
-    _usage_dict["estimated_cost"] += image_number * _api_prices["image_generation"]
+    with image_generation_lock:
+        _usage_dict["generated_images"] += image_number
+        _usage_dict["estimated_cost"] += image_number * _api_prices["image_generation"]
 
 
 def openai_show_usage() -> None:
